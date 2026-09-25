@@ -1,2 +1,1 @@
-streamlit
-loguru
+streamlit==1.31.0
