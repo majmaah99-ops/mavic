@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+"""
+MAVIC Project Setup Script
+ينشئ جميع ملفات المشروع تلقائياً
+"""
+import os
+
+# ========== 1) إنشاء المجلدات ==========
+folders = [
+    "src/security", "src/agents", "src/rag", "src/models", "src/utils",
+    "app", "data/sources/quran", "data/sources/hadith", "data/sources/fiqh",
+    "tests", "docs", "notebooks"
+]
+for f in folders:
+    os.makedirs(f, exist_ok=True)
+
+# ========== 2) إنشاء ملفات __init__.py ==========
+init_files = [
+    "src/__init__.py", "src/security/__init__.py", "src/agents/__init__.py",
+    "src/rag/__init__.py", "src/models/__init__.py", "src/utils/__init__.py",
+    "tests/__init__.py"
+]
+for f in init_files:
+    open(f, 'a', encoding='utf-8').close()
+
+# ========== 3) محتوى جميع الملفات ==========
+files = {}
+
+files["README.md"] = """# MAVIC — Multi-Agent Verification for Islamic Content
+
+منصة تحقق ذكية متعددة الوكلاء للمحتوى الإسلامي
+
+## المسار
+الرابع — أدوات المعرفة والتحقق لتمكين المعرّفين بالإسلام
+
+## الفكرة
+نظام متعدد الوكلاء يتحقق من المحتوى الإسلامي قبل عرضه، عبر 4 طبقات:
+1. Retriever Agent — استرجاع دلالي من المصادر المعتمدة
+2. Verification Agent — التحقق من صحة الدليل
+3. Fiqh Agent — حسابات فقهية حتمية (ميراث، زكاة)
+4. Referral Agent — إحالة للمختص عند نقص المرجعية
+
+مع سجل تدقيق أمني غير قابل للتعديل (Hash Chain).
+
+## التشغيل
+```bash
+pip install -r requirements.txt
+streamlit run app/streamlit_app.py
