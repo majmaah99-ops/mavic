@@ -9,7 +9,7 @@ class RetrieverAgent:
     name = "retriever"
 
     def retrieve(self, query):
-        # زيادة عدد النتائج الأولية
+        # البحث في كل المصادر
         results = search_sources_enhanced(query, top_k=10)
 
         sources = []
@@ -35,8 +35,8 @@ class RetrieverAgent:
                 "similarity": similarity,
             })
 
-            # اكتفِ بـ 3 مصادر نهائية
-            if len(sources) >= 3:
+            # اكتفِ بمصدرين فقط (الأعلى صلة)
+            if len(sources) >= 2:
                 break
 
         return sources
