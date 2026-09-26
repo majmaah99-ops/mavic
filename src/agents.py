@@ -9,15 +9,19 @@ class RetrieverAgent:
     name = "retriever"
 
     def retrieve(self, query):
-        # استدعاء الدالة الموحدة (المصادر المحلية + قاعدة بيانات الأحاديث)
-        results = search_sources_enhanced(query, settings.TOP_K_RESULTS)
+        # زيادة عدد النتائج الأولية
+        results = search_sources_enhanced(query, top_k=10)
 
         sources = []
-        for r in results:
-            # استخدام .get() لتجنب KeyError
-            # المصادر القادمة من قاعدة البيانات (SQLite) قد لا تحتوي على similarity
-            similarity = r.get("similarity", 1.0)
+        seen_ids = set()
 
+        for r in results:
+            # منع التكرار
+            if r["source_id"] in seen_ids:
+                continue
+            seen_ids.add(r["source_id"])
+
+            similarity = r.get("similarity", 1.0)
             if similarity < settings.SIMILARITY_THRESHOLD:
                 continue
 
@@ -30,6 +34,10 @@ class RetrieverAgent:
                 "hash": compute_hash(r["text"]),
                 "similarity": similarity,
             })
+
+            # اكتفِ بـ 3 مصادر نهائية
+            if len(sources) >= 3:
+                break
 
         return sources
 
@@ -46,7 +54,6 @@ class VerificationAgent:
                 "reason": "لا توجد مصادر مسترجعة",
             }
 
-        # جميع المصادر لها hash (بما فيها من API أو DB)
         verified = [s for s in sources if s.get("hash")]
         ratio = len(verified) / len(sources)
 
