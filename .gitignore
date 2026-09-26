@@ -2,4 +2,4 @@ __pycache__/
 *.py[cod]
 venv/
 .env
-data/audit_log.jsonl
+!data/hadith.db
