@@ -1,5 +1,16 @@
 __pycache__/
 *.py[cod]
 venv/
+.venv/
 .env
+.env.local
+data/chroma_db/
+data/audit_log.jsonl
+.vscode/
+.idea/
+.DS_Store
+*.bin
+*.safetensors
+.cache/
+
 !data/hadith.db
