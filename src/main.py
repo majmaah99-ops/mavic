@@ -24,8 +24,17 @@ def ask(query):
     agents_used.append("verification")
     verification = verification_agent.verify(query, sources)
 
+    # دمج الإجابات من عدة مصادر
     if verification["status"] in ("verified", "checkable") and sources:
-        answer = sources[0]["text"]
+        if len(sources) >= 2:
+            # ادمج النصوص من المصدرين الأول والثاني
+            combined = sources[0]["text"]
+            # إذا كان المصدر الثاني مختلفاً ومكمّلاً، أضفه
+            if sources[1]["text"][:50] not in combined:
+                combined += "\n\n📌 إضافة: " + sources[1]["text"]
+            answer = combined
+        else:
+            answer = sources[0]["text"]
         referral = None
     else:
         agents_used.append("referral")
@@ -35,7 +44,7 @@ def ask(query):
     elapsed_ms = (time.perf_counter() - start) * 1000
     elapsed_ms = round(elapsed_ms, 2)
     if elapsed_ms < 0.1:
-        elapsed_ms = 0.1  # حتى لا يظهر 0
+        elapsed_ms = 0.1
 
     audit_log.log(query_id, query, agents_used, sources_data, verification["status"])
 
