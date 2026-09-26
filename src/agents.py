@@ -1,4 +1,4 @@
-"""الوكلاء الأربعة"""
+"""الوكلاء الأربعة — Retriever, Verification, Fiqh, Referral"""
 from src.rag import search_sources_enhanced
 from src.security import compute_hash
 from src.config import settings
@@ -9,11 +9,15 @@ class RetrieverAgent:
     name = "retriever"
 
     def retrieve(self, query):
+        # استدعاء الدالة الموحدة (المصادر المحلية + قاعدة بيانات الأحاديث)
         results = search_sources_enhanced(query, settings.TOP_K_RESULTS)
+
         sources = []
         for r in results:
-            # استخدام .get() لتجنب KeyError — المصادر من SQLite لا تحتوي على similarity
+            # استخدام .get() لتجنب KeyError
+            # المصادر القادمة من قاعدة البيانات (SQLite) قد لا تحتوي على similarity
             similarity = r.get("similarity", 1.0)
+
             if similarity < settings.SIMILARITY_THRESHOLD:
                 continue
 
@@ -42,6 +46,7 @@ class VerificationAgent:
                 "reason": "لا توجد مصادر مسترجعة",
             }
 
+        # جميع المصادر لها hash (بما فيها من API أو DB)
         verified = [s for s in sources if s.get("hash")]
         ratio = len(verified) / len(sources)
 
@@ -65,11 +70,14 @@ class VerificationAgent:
 
 
 class FiqhAgent:
-    """وكيل الفقه — يحدد الأسئلة الفقهية"""
+    """وكيل الفقه — يحدد الأسئلة الفقهية الحسابية"""
     name = "fiqh"
 
     def is_fiqh_query(self, query):
-        keywords = ["ميراث", "تركة", "زكاة", "نصاب", "فرض", "ورثة", "حكم", "يجوز", "حرام", "حلال"]
+        keywords = [
+            "ميراث", "تركة", "زكاة", "نصاب", "فرض", "ورثة",
+            "حكم", "يجوز", "حرام", "حلال", "واجب", "سنة", "مكروه"
+        ]
         return any(k in query for k in keywords)
 
 
@@ -84,7 +92,7 @@ class ReferralAgent:
         )
 
 
-# ===== إنشاء نسخ من الوكلاء =====
+# ===== إنشاء نسخ من الوكلاء للاستخدام المباشر =====
 retriever_agent = RetrieverAgent()
 verification_agent = VerificationAgent()
 fiqh_agent = FiqhAgent()
