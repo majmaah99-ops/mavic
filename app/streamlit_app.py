@@ -79,16 +79,21 @@ if st.button("🔍 تحقق", type="primary") and query:
             st.markdown("### ⚠️ إحالة")
             st.warning(result["referral"])
 
-        if result.get("sources"):
+        # عرض المصادر ذات الصلة فقط (similarity >= 0.4)
+        relevant_sources = [s for s in result.get("sources", []) if s.get("similarity", 0) >= 0.4]
+
+        if relevant_sources:
             st.markdown("### 📚 المصادر")
-            for i, s in enumerate(result["sources"], 1):
+            for i, s in enumerate(relevant_sources, 1):
                 with st.expander(f"📖 المصدر {i}: {s['reference']}"):
                     st.write(s["text"])
                     if s.get("authenticity"):
                         st.caption(f"درجة الصحة: {s['authenticity']}")
                     st.caption(f"SHA-256: `{s['hash'][:32]}...`")
+        else:
+            st.warning("⚠️ لم يتم العثور على مصادر ذات صلة كافية")
 
-        st.caption(f"⏱️ زمن المعالجة: {result['processing_time_ms']:.0f}ms")
+        st.caption(f"⏱️ زمن المعالجة: {result['processing_time_ms']:.1f}ms")
 
 st.divider()
 st.caption("© 2026 MAVIC — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي")
