@@ -2,6 +2,18 @@
 import re
 
 
+# ===== كلمات التوقف العربية (تُستبعد من البحث) =====
+STOP_WORDS = {
+    "ما", "من", "في", "على", "إلى", "عن", "هذا", "هذه", "ذلك", "تلك",
+    "التي", "الذي", "الذين", "اللاتي", "اللواتي", "إن", "أن", "كان",
+    "كانت", "يكون", "تكون", "هو", "هي", "هم", "هن", "أنا", "أنت",
+    "نحن", "أنتم", "هل", "كيف", "لماذا", "متى", "أين", "كم", "أي",
+    "و", "أو", "ثم", "لكن", "بل", "لا", "لم", "لن", "قد", "كل",
+    "بعض", "غير", "بين", "مع", "عند", "قبل", "بعد", "يا", "أيها",
+    "اذكر", "أعطني", "قل", "أخبرني", "حدثني", "وضح", "اشرح",
+}
+
+
 SEED_SOURCES = [
     {
         "source_id": "quran_2_255",
@@ -21,11 +33,11 @@ SEED_SOURCES = [
     },
     {
         "source_id": "bukhari_1",
-        "text": "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى",
+        "text": "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله",
         "reference": "صحيح البخاري، حديث رقم 1",
         "source_type": "hadith",
         "authenticity": "صحيح",
-        "topics": ["نية", "أعمال", "إخلاص", "هجرة"],
+        "topics": ["نية", "نيات", "أعمال", "إخلاص", "هجرة"],
     },
     {
         "source_id": "bukhari_8",
@@ -33,7 +45,7 @@ SEED_SOURCES = [
         "reference": "صحيح البخاري، حديث رقم 8",
         "source_type": "hadith",
         "authenticity": "صحيح",
-        "topics": ["أركان الإسلام", "شهادة", "صلاة", "زكاة", "حج", "صوم", "إسلام"],
+        "topics": ["أركان الإسلام", "شهادة", "إسلام", "خمس"],
     },
     {
         "source_id": "muslim_2553",
@@ -41,7 +53,7 @@ SEED_SOURCES = [
         "reference": "صحيح مسلم، حديث رقم 2553",
         "source_type": "hadith",
         "authenticity": "صحيح",
-        "topics": ["بر", "خلق", "إثم", "أخلاق"],
+        "topics": ["بر", "خلق", "أخلاق", "إثم"],
     },
     {
         "source_id": "fiqh_zakat",
@@ -65,7 +77,7 @@ SEED_SOURCES = [
         "reference": "موسوعة الفقه الإسلامي، باب الصلوات المفروضة",
         "source_type": "fiqh",
         "authenticity": "معتمد",
-        "topics": ["صلاة", "فريضة", "فرض", "صلوات خمس", "مكتوبة"],
+        "topics": ["صلاة", "فريضة", "فرض", "صلوات", "مكتوبة"],
     },
     {
         "source_id": "fiqh_sawm",
@@ -73,7 +85,7 @@ SEED_SOURCES = [
         "reference": "موسوعة الفقه الإسلامي، باب الصيام",
         "source_type": "fiqh",
         "authenticity": "معتمد",
-        "topics": ["صوم", "رمضان", "فريضة", "صيام"],
+        "topics": ["صوم", "صيام", "رمضان", "فريضة"],
     },
     {
         "source_id": "fiqh_hajj",
@@ -81,79 +93,92 @@ SEED_SOURCES = [
         "reference": "موسوعة الفقه الإسلامي، باب الحج",
         "source_type": "fiqh",
         "authenticity": "معتمد",
-        "topics": ["حج", "فريضة", "أركان", "عمرة", "مستطيع"],
+        "topics": ["حج", "عمرة", "فريضة", "أركان", "مستطيع"],
     },
 ]
 
 
 def _normalize(text):
-    """تطبيع النص: إزالة التشكيل والرموز"""
-    text = re.sub(r"[\u064B-\u065F\u0670]", "", text)  # إزالة التشكيل
+    """تطبيع النص: إزالة التشكيل وتوحيد الحروف"""
+    text = re.sub(r"[\u064B-\u065F\u0670]", "", text)
     text = re.sub(r"[^\w\s\u0600-\u06FF]", " ", text)
-    text = re.sub(r"[إأآا]", "ا", text)  # توحيد الألف
-    text = re.sub(r"[ىي]", "ي", text)  # توحيد الياء
-    text = re.sub(r"ة", "ه", text)  # توحيد التاء المربوطة
+    text = re.sub(r"[إأآا]", "ا", text)
+    text = re.sub(r"[ىي]", "ي", text)
+    text = re.sub(r"ة", "ه", text)
     return text.lower().strip()
+
+
+def _keywords(text):
+    """استخراج الكلمات المفتاحية (بدون كلمات التوقف)"""
+    words = _normalize(text).split()
+    return set(w for w in words if len(w) > 2 and w not in STOP_WORDS)
 
 
 def search_sources(query, top_k=5):
     """
-    بحث محسّن يعتمد على:
-    1. مطابقة الكلمات المفتاحية الدقيقة
-    2. مطابقة المواضيع (topics) بوزن أعلى
-    3. مطابقة الكلمات الفرعية
+    بحث محسّن:
+    1. استبعاد كلمات التوقف
+    2. اشتراط تطابق كلمات مفتاحية حقيقية
+    3. ترجيح المواضيع (topics)
+    4. رفض المصادر ضعيفة الصلة
     """
+    q_keywords = _keywords(query)
     q_norm = _normalize(query)
-    qwords = set(w for w in q_norm.split() if len(w) > 1)
 
-    # إذا كان السؤال عن حكم شرعي، رجّح المصادر الفقهية
-    is_fiqh_question = any(k in q_norm for k in ["حكم", "يجوز", "حرام", "حلال", "فرض", "سنه", "واجب", "مكروه", "مباح"])
+    if not q_keywords:
+        return []
+
+    is_fiqh_question = any(k in q_norm for k in [
+        "حكم", "يجوز", "حرام", "حلال", "فرض", "سنه", "واجب", "مكروه", "مباح"
+    ])
 
     results = []
     for src in SEED_SOURCES:
-        src_text_norm = _normalize(src["text"] + " " + src["reference"])
-        src_words = set(src_text_norm.split())
+        src_keywords = _keywords(src["text"] + " " + src["reference"])
 
-        # 1) مطابقة الكلمات الدقيقة (وزن قوي)
-        exact_matches = qwords & src_words
-        exact_score = len(exact_matches) * 2.0
+        # 1) تطابق الكلمات المفتاحية الدقيقة
+        exact_matches = q_keywords & src_keywords
+        exact_score = len(exact_matches) * 3.0
 
-        # 2) مطابقة المواضيع (وزن أقوى)
+        # 2) مطابقة المواضيع
         topic_matches = 0
+        matched_topics = []
         for topic in src.get("topics", []):
             t_norm = _normalize(topic)
-            if t_norm in q_norm or any(t_norm in w or w in t_norm for w in qwords if len(w) > 2):
-                topic_matches += 1
-        topic_score = topic_matches * 3.0
+            for qk in q_keywords:
+                if t_norm == qk or t_norm in qk or qk in t_norm:
+                    topic_matches += 1
+                    matched_topics.append(topic)
+                    break
+        topic_score = topic_matches * 4.0
 
-        # 3) مطابقة الكلمات الفرعية (وزن متوسط)
-        substring_matches = 0
-        for q in qwords:
-            if len(q) > 2 and q not in exact_matches:
-                if q in src_text_norm:
-                    substring_matches += 1
-        substring_score = substring_matches * 1.0
+        # 3) مطابقة نصية دقيقة في النص الكامل
+        src_norm = _normalize(src["text"] + " " + src["reference"])
+        substring_score = 0
+        for qk in q_keywords:
+            if qk not in exact_matches and qk in src_norm:
+                substring_score += 1.0
 
         # 4) مكافأة للمصادر الفقهية عند السؤال عن حكم
-        fiqh_bonus = 1.5 if (is_fiqh_question and src["source_type"] == "fiqh") else 0
+        fiqh_bonus = 2.0 if (is_fiqh_question and src["source_type"] == "fiqh") else 0
 
         total_score = exact_score + topic_score + substring_score + fiqh_bonus
 
-        if total_score > 0:
-            results.append({**src, "_score": total_score})
+        # شروط القبول: يحتاج على الأقل تطابق كلمة مفتاحية واحدة أو موضوع واحد
+        if total_score >= 3.0:
+            results.append({**src, "_score": total_score, "_matched_topics": matched_topics})
 
-    # الترتيب حسب النقاط
     results.sort(key=lambda x: x["_score"], reverse=True)
 
-    # حساب similarity نسبي (للعرض فقط)
+    # حساب similarity نسبي
     if results:
         max_score = max(r["_score"] for r in results)
         for r in results:
             r["similarity"] = round(min(r["_score"] / max(max_score, 1), 1.0), 2)
 
-    # حذف النقاط الداخلية قبل الإرجاع
     for r in results:
         r.pop("_score", None)
+        r.pop("_matched_topics", None)
 
     return results[:top_k]
 
