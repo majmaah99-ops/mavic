@@ -1,14 +1,12 @@
-"""قاعدة المصادر والبحث الذكي - نسخة موسعة مع SQLite"""
+"""قاعدة المصادر والبحث الذكي"""
 import re
 import sqlite3
 from pathlib import Path
 
 
-# ===== مسار قاعدة البيانات =====
 DB_PATH = Path("data/hadith.db")
 
 
-# ===== كلمات التوقف العربية =====
 STOP_WORDS = {
     "ما", "من", "في", "على", "إلى", "عن", "هذا", "هذه", "ذلك", "تلك",
     "التي", "الذي", "الذين", "إن", "أن", "كان", "كانت", "يكون",
@@ -16,11 +14,10 @@ STOP_WORDS = {
     "هل", "كيف", "لماذا", "متى", "أين", "كم", "أي",
     "و", "أو", "ثم", "لكن", "بل", "لا", "لم", "لن", "قد", "كل",
     "بعض", "غير", "بين", "مع", "عند", "قبل", "بعد",
-    "اذكر", "أعطني", "قل", "أخبرني", "حدثني", "وضح", "اشرح", "بين",
+    "اذكر", "أعطني", "قل", "أخبرني", "حدثني", "وضح", "اشرح",
 }
 
 
-# ===== المصادر المحلية (القرآن + الفقه) =====
 SEED_SOURCES = [
     {
         "source_id": "quran_2_255",
@@ -37,6 +34,14 @@ SEED_SOURCES = [
         "source_type": "quran",
         "authenticity": "قطعي الثبوت",
         "topics": ["صبر", "إيمان", "عمل صالح"],
+    },
+    {
+        "source_id": "bukhari_1_manual",
+        "text": "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى",
+        "reference": "صحيح البخاري، حديث رقم 1 (نسخة مصغرة)",
+        "source_type": "hadith",
+        "authenticity": "صحيح",
+        "topics": ["نية", "نيات", "أعمال", "إخلاص", "هجرة"],
     },
     {
         "source_id": "fiqh_zakat",
@@ -62,29 +67,10 @@ SEED_SOURCES = [
         "authenticity": "معتمد",
         "topics": ["صلاة", "فريضة", "فرض", "صلوات"],
     },
-    {
-        "source_id": "fiqh_sawm",
-        "text": "صوم رمضان فرض عين على كل مسلم بالغ عاقل قادر، ووقته من طلوع الفجر إلى غروب الشمس",
-        "reference": "موسوعة الفقه الإسلامي، باب الصيام",
-        "source_type": "fiqh",
-        "authenticity": "معتمد",
-        "topics": ["صوم", "رمضان", "فريضة", "صيام"],
-    },
-    {
-        "source_id": "fiqh_hajj",
-        "text": "الحج فرض مرة واحدة في العمر على المستطيع، وأركانه: الإحرام، والطواف، والسعي، والوقوف بعرفة",
-        "reference": "موسوعة الفقه الإسلامي، باب الحج",
-        "source_type": "fiqh",
-        "authenticity": "معتمد",
-        "topics": ["حج", "عمرة", "فريضة", "أركان"],
-    },
 ]
 
 
-# ===== دوال المعالجة =====
-
 def _normalize(text):
-    """تطبيع النص: إزالة التشكيل وتوحيد الحروف"""
     text = re.sub(r"[\u064B-\u065F\u0670]", "", text)
     text = re.sub(r"[^\w\s\u0600-\u06FF]", " ", text)
     text = re.sub(r"[إأآا]", "ا", text)
@@ -93,17 +79,24 @@ def _normalize(text):
     return text.lower().strip()
 
 
-def _keywords(text):
-    """استخراج الكلمات المفتاحية بدون كلمات التوقف"""
+def _keywords_normalized(text):
+    """كلمات مفتاحية مُطبّعة (للمصادر المحلية)"""
     words = _normalize(text).split()
     return set(w for w in words if len(w) > 2 and w not in STOP_WORDS)
+
+
+def _keywords_original(text):
+    """كلمات مفتاحية أصلية (للبحث في DB)"""
+    clean = re.sub(r"[\u064B-\u065F\u0670]", "", text)
+    clean = re.sub(r"[^\w\s\u0600-\u06FF]", " ", clean)
+    words = clean.split()
+    return [w for w in words if len(w) > 2 and w not in STOP_WORDS]
 
 
 # ===== البحث في المصادر المحلية =====
 
 def search_local_sources(query, top_k=3):
-    """البحث في المصادر المحلية (القرآن والفقه)"""
-    q_keywords = _keywords(query)
+    q_keywords = _keywords_normalized(query)
     q_norm = _normalize(query)
 
     if not q_keywords:
@@ -111,7 +104,7 @@ def search_local_sources(query, top_k=3):
 
     results = []
     for src in SEED_SOURCES:
-        src_keywords = _keywords(src["text"] + " " + src["reference"])
+        src_keywords = _keywords_normalized(src["text"] + " " + src["reference"])
         exact_matches = q_keywords & src_keywords
         exact_score = len(exact_matches) * 3.0
 
@@ -125,7 +118,6 @@ def search_local_sources(query, top_k=3):
         topic_score = topic_matches * 4.0
 
         total_score = exact_score + topic_score
-
         if total_score >= 3.0:
             results.append({**src, "_score": total_score})
 
@@ -135,36 +127,50 @@ def search_local_sources(query, top_k=3):
 
 # ===== البحث في قاعدة بيانات الأحاديث =====
 
-def search_hadith_db(query, top_k=3):
-    """البحث في قاعدة بيانات 14,736 حديث"""
+def search_hadith_db(query, top_k=5):
+    """البحث في DB بكلمتين: أصلية + مطبّعة"""
     if not DB_PATH.exists():
         return []
 
-    q_keywords = _keywords(query)
-    if not q_keywords:
+    # نجمع بين الكلمات الأصلية والمطبعة (لضمان المطابقة في كل الحالات)
+    kws_original = _keywords_original(query)
+    kws_normalized = list(_keywords_normalized(query))
+
+    # نضيف الكلمات الأصلية أولاً (لها أولوية)
+    all_keywords = []
+    seen_kw = set()
+    for kw in kws_original + kws_normalized:
+        if kw not in seen_kw and len(kw) > 2:
+            seen_kw.add(kw)
+            all_keywords.append(kw)
+
+    if not all_keywords:
         return []
+
+    # نرتب الكلمات حسب الطول تنازلياً (الأطول = الأكثر تحديداً)
+    all_keywords.sort(key=len, reverse=True)
 
     try:
         conn = sqlite3.connect(str(DB_PATH))
         cursor = conn.cursor()
 
-        # البحث عن الأحاديث التي تحتوي على إحدى الكلمات المفتاحية
         results = []
-        seen = set()
-        for keyword in q_keywords:
+        seen_hadith = set()
+
+        for keyword in all_keywords:
             cursor.execute("""
                 SELECT book, hadith_number, text, grade
                 FROM hadiths
                 WHERE text LIKE ?
                 LIMIT ?
-            """, (f"%{keyword}%", top_k * 2))
+            """, (f"%{keyword}%", top_k))
 
             for row in cursor.fetchall():
                 book, number, text, grade = row
                 key = f"{book}_{number}"
-                if key in seen:
+                if key in seen_hadith:
                     continue
-                seen.add(key)
+                seen_hadith.add(key)
                 results.append({
                     "source_id": f"hadith_{book}_{number}",
                     "text": text,
@@ -174,6 +180,7 @@ def search_hadith_db(query, top_k=3):
                 })
                 if len(results) >= top_k:
                     break
+
             if len(results) >= top_k:
                 break
 
@@ -187,17 +194,25 @@ def search_hadith_db(query, top_k=3):
 # ===== الدالة الرئيسية =====
 
 def search_sources_enhanced(query, top_k=5):
-    """البحث الموحد: محلي + قاعدة بيانات الأحاديث"""
+    """البحث الموحد: محلي + DB + fallback"""
     local_results = search_local_sources(query, top_k=3)
     hadith_results = search_hadith_db(query, top_k=3)
 
-    # الأولوية: المصادر المحلية أولاً (القرآن والفقه)
+    # إذا لم نجد أي نتيجة، نجرب البحث بكلمة واحدة فقط
+    if not local_results and not hadith_results:
+        original_kws = _keywords_original(query)
+        for kw in original_kws:
+            if len(kw) > 3:
+                local_results = search_local_sources(kw, top_k=2)
+                hadith_results = search_hadith_db(kw, top_k=2)
+                if local_results or hadith_results:
+                    break
+
     all_results = local_results + hadith_results
     return all_results[:top_k]
 
 
 def source_count():
-    """عدد المصادر المتاحة"""
     base = len(SEED_SOURCES)
     if DB_PATH.exists():
         try:
@@ -212,8 +227,5 @@ def source_count():
     return base
 
 
-# ===== للتوافق مع الكود القديم =====
-
 def search_sources(query, top_k=5):
-    """دالة قديمة للتوافق — تستدعي الدالة المحسنة"""
     return search_sources_enhanced(query, top_k)
