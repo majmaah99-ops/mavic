@@ -9,7 +9,7 @@ class Settings:
     SOURCE_HASH_SALT = "mavic-salt-2026"
     MAX_QUERY_LENGTH = 500
     TOP_K_RESULTS = 5
-    SIMILARITY_THRESHOLD = 0.35  # تم رفعه من 0.2 إلى 0.35 لتحسين الدقة
+    SIMILARITY_THRESHOLD = 0.65  # رُفعت من 0.40 لتصفية المصادر الضعيفة
 
 
 settings = Settings()
