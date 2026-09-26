@@ -90,6 +90,30 @@ SEED_SOURCES = [
         "topics": ["زكاة", "نصاب", "ذهب", "فضة", "نقود", "حول"],
     },
     {
+        "source_id": "fiqh_zakat_jewelry",
+        "text": "زكاة الحلي (الذهب الملبوس): اختلف الفقهاء على قولين: الجمهور (المالكية والشافعية والحنابلة) يرون أن حلي المرأة المباح للزينة لا تجب فيه الزكاة إذا كان في حدود المعتاد، ما لم يكن كنزاً أو ادخاراً. والحنفية يرون وجوب الزكاة في الحلي إذا بلغ النصاب. والراجح قول الجمهور إذا كان للزينة المعتادة.",
+        "reference": "موسوعة الفقه الإسلامي، باب زكاة الحلي",
+        "source_type": "fiqh",
+        "authenticity": "معتمد",
+        "topics": ["زكاة", "حلي", "ذهب ملبوس", "ذهب مستعمل", "زينة", "نصاب", "حكم"],
+    },
+    {
+        "source_id": "fiqh_zakat_used_gold",
+        "text": "الذهب المستعمل: إذا كان للزينة المعتادة فلا زكاة فيه عند الجمهور. وإذا كان للتجارة أو الادخار أو الكنز فتجب فيه الزكاة إذا بلغ النصاب (20 مثقالاً = 85 جرام) وحال عليه الحول.",
+        "reference": "موسوعة الفقه الإسلامي، باب زكاة الذهب المستعمل",
+        "source_type": "fiqh",
+        "authenticity": "معتمد",
+        "topics": ["زكاة", "ذهب مستعمل", "ذهب ملبوس", "تجارة", "ادخار", "كنز"],
+    },
+    {
+        "source_id": "fiqh_zakah_types",
+        "text": "أنواع الزكاة: زكاة المال (النقود والذهب والفضة)، زكاة الأنعام، زكاة الزروع والثمار، زكاة التجارة، زكاة الفطر. وزكاة المال تجب إذا بلغ النصاب وحال عليه الحول.",
+        "reference": "موسوعة الفقه الإسلامي، باب الزكاة",
+        "source_type": "fiqh",
+        "authenticity": "معتمد",
+        "topics": ["زكاة", "أنواع", "مال", "تجارة", "فطر", "أنعام", "زروع"],
+    },
+    {
         "source_id": "fiqh_zakat_animals",
         "text": "زكاة الأنعام: الإبل والبقر والغنم إذا بلغت النصاب وحال عليها الحول. ونصاب الإبل خمس، ونصاب البقر ثلاثون، ونصاب الغنم أربعون.",
         "reference": "موسوعة الفقه الإسلامي، باب زكاة الأنعام",
@@ -215,16 +239,17 @@ def _keywords_original(text):
 
 # ========== البحث في المصادر المحلية ==========
 
-def search_local_sources(query, top_k=3):
+def search_local_sources(query, top_k=5):
+    """البحث مع ترجيح قوي للمواضيع (Topics)"""
     q_keywords = _keywords_normalized(query)
     q_norm = _normalize(query)
 
     if not q_keywords:
         return []
 
-    # هل السؤال فقهي؟
     is_fiqh_question = any(k in q_norm for k in [
-        "حكم", "يجوز", "حرام", "حلال", "فرض", "سنه", "واجب", "مكروه", "مباح", "قصر", "جمع", "صيام", "زكاه", "حج"
+        "حكم", "يجوز", "حرام", "حلال", "فرض", "سنه", "واجب",
+        "مكروه", "مباح", "قصر", "جمع", "زكاه", "صيام", "حج", "صلاه"
     ])
 
     results = []
@@ -233,6 +258,7 @@ def search_local_sources(query, top_k=3):
         exact_matches = q_keywords & src_keywords
         exact_score = len(exact_matches) * 3.0
 
+        # ترجيح قوي للمواضيع
         topic_matches = 0
         for topic in src.get("topics", []):
             t_norm = _normalize(topic)
@@ -240,9 +266,11 @@ def search_local_sources(query, top_k=3):
                 if t_norm == qk or t_norm in qk or qk in t_norm:
                     topic_matches += 1
                     break
-        topic_score = topic_matches * 4.0
 
-        fiqh_bonus = 2.0 if (is_fiqh_question and src["source_type"] == "fiqh") else 0
+        topic_weight = 5.0 if is_fiqh_question else 3.0
+        topic_score = topic_matches * topic_weight
+
+        fiqh_bonus = 1.5 if (is_fiqh_question and src["source_type"] == "fiqh") else 0
 
         total_score = exact_score + topic_score + fiqh_bonus
         if total_score >= 3.0:
@@ -316,8 +344,8 @@ def search_hadith_db(query, top_k=5):
 # ========== الدالة الموحدة ==========
 
 def search_sources_enhanced(query, top_k=5):
-    local_results = search_local_sources(query, top_k=3)
-    hadith_results = search_hadith_db(query, top_k=3)
+    local_results = search_local_sources(query, top_k=5)
+    hadith_results = search_hadith_db(query, top_k=5)
 
     if not local_results and not hadith_results:
         original_kws = _keywords_original(query)
