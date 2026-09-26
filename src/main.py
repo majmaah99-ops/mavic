@@ -10,7 +10,7 @@ def ask(query):
     if not ok:
         return {"error": reason}
 
-    start = time.time()
+    start = time.perf_counter()
     query_id = f"q_{uuid.uuid4().hex[:12]}"
     agents_used = []
 
@@ -32,7 +32,10 @@ def ask(query):
         answer = None
         referral = referral_agent.refer(verification["reason"])
 
-    elapsed = (time.time() - start) * 1000
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    elapsed_ms = round(elapsed_ms, 2)
+    if elapsed_ms < 0.1:
+        elapsed_ms = 0.1  # حتى لا يظهر 0
 
     audit_log.log(query_id, query, agents_used, sources_data, verification["status"])
 
@@ -42,6 +45,6 @@ def ask(query):
         "sources": sources,
         "verification": verification,
         "referral": referral,
-        "processing_time_ms": elapsed,
+        "processing_time_ms": elapsed_ms,
         "query_id": query_id,
     }
