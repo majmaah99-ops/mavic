@@ -20,6 +20,7 @@ class RetrieverAgent:
                 "source_type": r["source_type"],
                 "authenticity": r.get("authenticity"),
                 "hash": compute_hash(r["text"]),
+                "similarity": r["similarity"],
             })
         return sources
 
