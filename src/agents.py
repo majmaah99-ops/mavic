@@ -1,18 +1,22 @@
 """الوكلاء الأربعة"""
-from src.rag import search_sources
+from src.rag import search_sources_enhanced
 from src.security import compute_hash
 from src.config import settings
 
 
 class RetrieverAgent:
+    """وكيل الاسترجاع — يبحث في المصادر المحلية وقاعدة بيانات الأحاديث"""
     name = "retriever"
 
     def retrieve(self, query):
-        results = search_sources(query, settings.TOP_K_RESULTS)
+        results = search_sources_enhanced(query, settings.TOP_K_RESULTS)
         sources = []
         for r in results:
-            if r["similarity"] < settings.SIMILARITY_THRESHOLD:
+            # استخدام .get() لتجنب KeyError — المصادر من SQLite لا تحتوي على similarity
+            similarity = r.get("similarity", 1.0)
+            if similarity < settings.SIMILARITY_THRESHOLD:
                 continue
+
             sources.append({
                 "source_id": r["source_id"],
                 "text": r["text"],
@@ -20,41 +24,67 @@ class RetrieverAgent:
                 "source_type": r["source_type"],
                 "authenticity": r.get("authenticity"),
                 "hash": compute_hash(r["text"]),
-                "similarity": r["similarity"],
+                "similarity": similarity,
             })
+
         return sources
 
 
 class VerificationAgent:
+    """وكيل التحقق — يتحقق من صحة المصادر ودرجة الثقة"""
     name = "verification"
 
     def verify(self, query, sources):
         if not sources:
-            return {"status": "needs_review", "confidence": 0.0, "reason": "لا توجد مصادر مسترجعة"}
+            return {
+                "status": "needs_review",
+                "confidence": 0.0,
+                "reason": "لا توجد مصادر مسترجعة",
+            }
+
         verified = [s for s in sources if s.get("hash")]
         ratio = len(verified) / len(sources)
+
         if ratio == 1.0 and len(sources) >= 2:
-            return {"status": "verified", "confidence": 0.95, "reason": f"تم التحقق من {len(verified)} مصدر"}
+            return {
+                "status": "verified",
+                "confidence": 0.95,
+                "reason": f"تم التحقق من {len(verified)} مصدر",
+            }
         if ratio >= 0.7:
-            return {"status": "checkable", "confidence": 0.75, "reason": "مصادر قابلة للتحقق"}
-        return {"status": "needs_review", "confidence": 0.5, "reason": "يحتاج مراجعة بشرية"}
+            return {
+                "status": "checkable",
+                "confidence": 0.75,
+                "reason": "مصادر قابلة للتحقق",
+            }
+        return {
+            "status": "needs_review",
+            "confidence": 0.5,
+            "reason": "يحتاج مراجعة بشرية",
+        }
 
 
 class FiqhAgent:
+    """وكيل الفقه — يحدد الأسئلة الفقهية"""
     name = "fiqh"
 
     def is_fiqh_query(self, query):
-        keywords = ["ميراث", "تركة", "زكاة", "نصاب", "فرض", "ورثة"]
+        keywords = ["ميراث", "تركة", "زكاة", "نصاب", "فرض", "ورثة", "حكم", "يجوز", "حرام", "حلال"]
         return any(k in query for k in keywords)
 
 
 class ReferralAgent:
+    """وكيل الإحالة — يحيل المستخدم للمختص عند نقص المرجعية"""
     name = "referral"
 
     def refer(self, reason):
-        return f"لم أتمكن من تقديم إجابة موثوقة ({reason}).\n\nيرجى التواصل مع مفتي أو جهة دينية مختصة."
+        return (
+            f"لم أتمكن من تقديم إجابة موثوقة ({reason}).\n\n"
+            "يرجى التواصل مع مفتي أو جهة دينية مختصة."
+        )
 
 
+# ===== إنشاء نسخ من الوكلاء =====
 retriever_agent = RetrieverAgent()
 verification_agent = VerificationAgent()
 fiqh_agent = FiqhAgent()
