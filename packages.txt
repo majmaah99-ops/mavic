@@ -1,2 +1,2 @@
-zlib1g-dev
-libjpeg-dev
+# لا حاجة لمكتبات نظام - كل المكتبات pure python
+# pymupdf, scikit-learn يعملان بدون apt
