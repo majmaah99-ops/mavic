@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+data/chroma/
+data/audit.jsonl
+*.db
+.DS_Store
+.vscode/
+.idea/

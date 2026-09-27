@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة إدارة مصادر MAVIC</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; }
+body { background:#0f172a; color:#fff; min-height:100vh; padding:20px; }
+.bg1,.bg2,.bg3 { position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; }
+.bg1 { top:-10%; right:-10%; width:600px; height:600px; background:rgba(16,185,129,.15); }
+.bg2 { bottom:-10%; left:-15%; width:700px; height:700px; background:rgba(245,158,11,.1); }
+.bg3 { top:40%; left:20%; width:400px; height:400px; background:rgba(20,184,166,.1); }
+.container { max-width:1280px; margin:0 auto; position:relative; z-index:1; }
+header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; flex-wrap:wrap; gap:16px; }
+.logo { display:flex; align-items:center; gap:14px; }
+.logo-icon { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg,#34d399,#059669); display:flex; align-items:center; justify-content:center; font-size:24px; }
+.logo h1 { font-size:24px; font-weight:800; }
+.logo p { font-size:13px; color:#94a3b8; margin-top:4px; display:flex; align-items:center; gap:8px; }
+.dot { width:8px; height:8px; border-radius:50%; background:#34d399; display:inline-block; animation:pulse 2s infinite; }
+@keyframes pulse { 50% { opacity:.5; } }
+nav a { color:#94a3b8; text-decoration:none; font-size:14px; padding:8px 16px; border-radius:10px; transition:.2s; }
+nav a:hover { background:rgba(255,255,255,.06); color:#fff; }
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:32px; }
+.stat { position:relative; overflow:hidden; background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:20px; backdrop-filter:blur(20px); }
+.stat.amber { background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(255,255,255,.02)); border-color:rgba(245,158,11,.2); }
+.stat-label { font-size:11px; color:#94a3b8; letter-spacing:1px; font-weight:600; text-transform:uppercase; }
+.stat-value { font-size:36px; font-weight:800; margin-top:8px; }
+.stat.amber .stat-value { color:#fcd34d; }
+.stat-sub { font-size:12px; color:#6ee7b7; margin-top:8px; }
+.grid { display:grid; grid-template-columns:1.15fr .85fr; gap:24px; align-items:start; }
+@media (max-width:1024px) { .grid { grid-template-columns:1fr; } }
+.card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:24px; overflow:hidden; backdrop-filter:blur(20px); }
+.card-head { padding:24px 28px; border-bottom:1px solid rgba(255,255,255,.1); display:flex; justify-content:space-between; align-items:center; }
+.card-head h2 { font-size:18px; font-weight:700; display:flex; align-items:center; gap:10px; }
+.card-head .icon { width:32px; height:32px; border-radius:10px; background:#10b981; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.tag { font-size:10px; padding:4px 10px; border-radius:999px; background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.2); color:#6ee7b7; font-weight:600; }
+.card-body { padding:24px 28px; display:flex; flex-direction:column; gap:20px; }
+.field { display:flex; flex-direction:column; }
+.field label { font-size:12px; color:#94a3b8; margin-bottom:8px; font-weight:500; }
+.field input, .field select, .field textarea { width:100%; padding:14px 16px; border-radius:12px; background:rgba(15,23,42,.6); border:1px solid rgba(255,255,255,.1); color:#fff; font-size:14px; outline:none; transition:.2s; font-family:inherit; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color:rgba(16,185,129,.5); box-shadow:0 0 0 3px rgba(16,185,129,.15); }
+.field textarea { min-height:140px; resize:vertical; line-height:1.7; }
+.field input::placeholder, .field textarea::placeholder { color:#64748b; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.trust-btns { display:flex; gap:8px; }
+.trust-btn { flex:1; height:48px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:#94a3b8; font-size:14px; font-weight:600; cursor:pointer; transition:.2s; }
+.trust-btn.active { background:#10b981; border-color:#34d399; color:#fff; box-shadow:0 10px 30px rgba(16,185,129,.2); }
+.trust-btn:hover:not(.active) { background:rgba(255,255,255,.08); }
+.btn { height:52px; border:none; border-radius:12px; background:linear-gradient(135deg,#10b981,#14b8a6); color:#fff; font-size:15px; font-weight:700; cursor:pointer; transition:.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 30px rgba(16,185,129,.3); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.success { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.2); border-radius:12px; padding:16px; font-size:13px; color:#6ee7b7; animation:fadeIn .4s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px);} to{opacity:1;transform:none;} }
+.sha-box { background:rgba(15,23,42,.6); padding:10px; border-radius:8px; font-family:monospace; font-size:11px; color:#10b981; direction:ltr; text-align:left; margin-top:8px; word-break:break-all; }
+.list-head { padding:20px; border-bottom:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; gap:14px; }
+.search-row { display:flex; gap:10px; }
+.search-row input, .search-row select { height:40px; padding:0 14px; border-radius:12px; background:rgba(15,23,42,.6); border:1px solid rgba(255,255,255,.1); color:#fff; font-size:13px; outline:none; }
+.search-row input { flex:1; }
+.list { max-height:480px; overflow-y:auto; }
+.list-item { padding:16px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:1px solid rgba(255,255,255,.06); transition:.2s; }
+.list-item:hover { background:rgba(255,255,255,.03); }
+.list-item:last-child { border-bottom:none; }
+.item-body { flex:1; min-width:0; }
+.item-title { font-size:14px; font-weight:700; margin-bottom:6px; }
+.item-meta { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; font-size:10px; }
+.chip { padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:#94a3b8; }
+.chip.ok { background:rgba(16,185,129,.15); border-color:rgba(16,185,129,.2); color:#6ee7b7; }
+.item-ref { font-size:11px; color:#64748b; margin-top:6px; }
+.del-btn { width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:#94a3b8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s; flex-shrink:0; }
+.del-btn:hover { background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.2); color:#fca5a5; }
+.empty { padding:40px; text-align:center; color:#64748b; font-size:14px; }
+.tip { background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.2); border-radius:12px; padding:14px; font-size:12px; color:rgba(252,211,77,.9); line-height:1.7; }
+.info { background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(20,184,166,.08)); border:1px solid rgba(16,185,129,.2); border-radius:20px; padding:20px; display:flex; gap:16px; }
+.info-icon { width:40px; height:40px; border-radius:12px; background:#10b981; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.info h3 { font-size:14px; color:#a7f3d0; margin-bottom:6px; }
+.info p { font-size:12px; color:rgba(209,250,229,.7); line-height:1.7; }
+footer { margin-top:40px; padding-top:24px; border-top:1px solid rgba(255,255,255,.1); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:#64748b; }
+</style>
+</head>
+<body>
+<div class="bg1"></div><div class="bg2"></div><div class="bg3"></div>
+<div class="container">
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <div>
+      <h1>لوحة إدارة مصادر MAVIC</h1>
+      <p><span class="dot"></span> نظام التوثيق الإسلامي الذكي • بدون تعديل ملفات</p>
+    </div>
+  </div>
+  <nav>
+    <a href="/">🔍 تحقق</a>
+    <a href="/admin">⚙️ الإدارة</a>
+    <a href="/docs" target="_blank">📡 API</a>
+  </nav>
+</header>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">إجمالي المصادر</div>
+    <div class="stat-value" id="stat-total">—</div>
+    <div class="stat-sub" id="stat-total-sub">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">القرآن</div>
+    <div class="stat-value" id="stat-quran">—</div>
+    <div class="stat-sub">آية مفهرسة</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">الأحاديث</div>
+    <div class="stat-value" id="stat-hadith">—</div>
+    <div class="stat-sub">من الصحاح والسنن</div>
+  </div>
+  <div class="stat amber">
+    <div class="stat-label">الفقه والمخصص</div>
+    <div class="stat-value" id="stat-other">—</div>
+    <div class="stat-sub">مصادر مضافة يدويًا</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-head">
+      <h2><span class="icon">➕</span> إضافة مصدر جديد</h2>
+      <span class="tag">التركيز الرئيسي</span>
+    </div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="field" style="grid-column:span 2;">
+          <label>عنوان المسألة الفقهية</label>
+          <input id="f-title" placeholder="مثال: صلاة الكسوف" />
+        </div>
+        <div class="field">
+          <label>التصنيف</label>
+          <select id="f-category">
+            <option value="custom">مخصص</option>
+            <option value="hadith">حديث</option>
+            <option value="quran">قرآن</option>
+            <option value="fiqh">فقه</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>درجة الصحة</label>
+          <div class="trust-btns" id="trust-group">
+            <button class="trust-btn active" data-trust="صحيح">صحيح</button>
+            <button class="trust-btn" data-trust="حسن">حسن</button>
+            <button class="trust-btn" data-trust="معتمد">معتمد</button>
+          </div>
+        </div>
+        <div class="field" style="grid-column:span 2;">
+          <label>النص الفقهي الموثق</label>
+          <textarea id="f-text" placeholder="أدخل النص الفقهي الكامل مع الضبط والتوثيق..."></textarea>
+        </div>
+        <div class="field" style="grid-column:span 2;">
+          <label>المرجع</label>
+          <input id="f-reference" placeholder="موسوعة الفقه الإسلامي، المغني، صحيح البخاري..." />
+        </div>
+      </div>
+      <button class="btn" id="add-btn" onclick="addSource()">➕ إضافة وتوثيق المصدر</button>
+      <div id="add-status"></div>
+      <div class="tip">💡 بعد الإضافة يُفهرس المصدر تلقائيًا ويصبح متاحًا في صفحة التحقق فورًا — بدون إعادة نشر.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="info">
+      <div class="info-icon">🗄️</div>
+      <div>
+        <h3>نظام الفهرسة التلقائي</h3>
+        <p>كل مصدر جديد يُحوّل فورًا إلى Embedding ويُفهرس في Vector DB. لا حاجة لإعادة بناء أو تعديل أي ملف.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="list-head">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-size:14px;font-weight:700;">المصادر الموثقة</h3>
+          <span class="tag" id="list-count">—</span>
+        </div>
+        <div class="search-row">
+          <input id="f-search" placeholder="🔍 بحث..." oninput="loadSources()" />
+          <select id="f-filter" onchange="loadSources()">
+            <option value="">الكل</option>
+            <option value="quran">قرآن</option>
+            <option value="hadith">حديث</option>
+            <option value="fiqh">فقه</option>
+            <option value="custom">مخصص</option>
+          </select>
+        </div>
+      </div>
+      <div class="list" id="sources-list">
+        <div class="empty">جارٍ التحميل...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>MAVIC © 2026 • كل المصادر موثقة بـ SHA-256</p>
+  <p><span class="dot"></span> لا حاجة لتعديل الملفات بعد اليوم</p>
+</footer>
+</div>
+
+<script>
+const API = "";
+let selectedTrust = "صحيح";
+
+// ---------- Trust buttons ----------
+document.querySelectorAll(".trust-btn").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll(".trust-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    selectedTrust = b.dataset.trust;
+  };
+});
+
+// ---------- Load stats ----------
+async function loadStats() {
+  try {
+    const r = await fetch(`${API}/api/admin/stats`);
+    const d = await r.json();
+    document.getElementById("stat-total").textContent = d.total.toLocaleString();
+    document.getElementById("stat-quran").textContent = (d.breakdown.quran || 0).toLocaleString();
+    document.getElementById("stat-hadith").textContent = (d.breakdown.hadith || 0).toLocaleString();
+    const other = (d.breakdown.fiqh || 0) + (d.breakdown.custom || 0);
+    document.getElementById("stat-other").textContent = other.toLocaleString();
+    document.getElementById("stat-total-sub").textContent = `من ${Object.keys(d.breakdown).length} فئات`;
+  } catch(e) { console.error(e); }
+}
+
+// ---------- Load sources ----------
+async function loadSources() {
+  const q = document.getElementById("f-search").value;
+  const cat = document.getElementById("f-filter").value;
+  const list = document.getElementById("sources-list");
+  list.innerHTML = '<div class="empty">جارٍ التحميل...</div>';
+  try {
+    const params = new URLSearchParams();
+    if (cat) params.set("category", cat);
+    if (q) params.set("q", q);
+    params.set("limit", "50");
+    const r = await fetch(`${API}/api/admin/sources?${params}`);
+    const d = await r.json();
+    document.getElementById("list-count").textContent = `${d.total} مصدر`;
+    if (!d.items.length) {
+      list.innerHTML = '<div class="empty">لا توجد نتائج</div>';
+      return;
+    }
+    list.innerHTML = d.items.map(it => `
+      <div class="list-item">
+        <div class="item-body">
+          <div class="item-title">${escapeHtml(it.title || it.id)}</div>
+          <div class="item-ref">${escapeHtml(it.book || "")}${it.number ? " • " + it.number : ""}</div>
+          <div class="item-meta">
+            <span class="chip ok">✅ ${escapeHtml(it.trust || "صحيح")}</span>
+            <span class="chip">📁 ${escapeHtml(it.category)}</span>
+            <span class="chip">🔐 ${(it.sha || "").slice(0, 10)}</span>
+          </div>
+        </div>
+        <button class="del-btn" onclick="delSource('${it.id}')" title="حذف">🗑️</button>
+      </div>
+    `).join("");
+  } catch(e) {
+    list.innerHTML = `<div class="empty">⚠️ خطأ: ${e.message}</div>`;
+  }
+}
+
+// ---------- Add source ----------
+async function addSource() {
+  const title = document.getElementById("f-title").value.trim();
+  const text = document.getElementById("f-text").value.trim();
+  const reference = document.getElementById("f-reference").value.trim();
+  const category = document.getElementById("f-category").value;
+  const btn = document.getElementById("add-btn");
+  const status = document.getElementById("add-status");
+
+  if (!title || !text) {
+    status.innerHTML = '<div class="success" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);color:#fca5a5;">⚠️ العنوان والنص مطلوبان</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "⏳ جارٍ التوثيق والفهرسة...";
+  status.innerHTML = "";
+
+  try {
+    const r = await fetch(`${API}/api/admin/add`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({category, title, text, reference, trust: selectedTrust})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || "خطأ");
+    
+    status.innerHTML = `
+      <div class="success">
+        ✅ <strong>تمت الإضافة والفهرسة بنجاح</strong>
+        <div class="sha-box">SHA-256: ${d.sha}${"…"}</div>
+        <div style="margin-top:8px;">المصدر متاح الآن في صفحة التحقق مباشرة</div>
+      </div>`;
+    document.getElementById("f-title").value = "";
+    document.getElementById("f-text").value = "";
+    document.getElementById("f-reference").value = "";
+    await loadStats();
+    await loadSources();
+    setTimeout(() => status.innerHTML = "", 6000);
+  } catch(e) {
+    status.innerHTML = `<div class="success" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);color:#fca5a5;">⚠️ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "➕ إضافة وتوثيق المصدر";
+  }
+}
+
+// ---------- Delete ----------
+async function delSource(id) {
+  if (!confirm("هل أنت متأكد من الحذف؟")) return;
+  try {
+    const r = await fetch(`${API}/api/admin/sources/${id}`, { method: "DELETE" });
+    if (!r.ok) throw new Error("فشل الحذف");
+    await loadStats();
+    await loadSources();
+  } catch(e) { alert(e.message); }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// Init
+loadStats();
+loadSources();
+</script>
+</body>
+</html>
