@@ -1,1 +1,0 @@
-cd C:\\Users\\xp-55\\Documents\\GitHub\\mavic\nCopy files\npip install -r requirements.txt\nstreamlit run app\\streamlit_app.py\n

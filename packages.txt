@@ -1,2 +1,0 @@
-# لا حاجة لمكتبات نظام - كل المكتبات pure python
-# pymupdf, scikit-learn يعملان بدون apt
