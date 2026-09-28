@@ -1,4 +1,4 @@
-"""MAVIC agents - بحث نصي ذكي بدون ChromaDB"""
+"""MAVIC agents - نص بحث ذكي بدون ChromaDB"""
 import hashlib, json, re, uuid
 from datetime import datetime
 from pathlib import Path
@@ -47,11 +47,11 @@ def _load_sources():
 # ============================================
 def _normalize(s):
     """إزالة التشكيل وتوحيد الحروف"""
-    s = re.sub(r"[\u064B-\u0652\u0670\u0640]", "", s)  # التشكيل
+    s = re.sub(r"[\u064B-\u0652\u0670\u0640]", "", s)
     s = re.sub(r"[إأآا]", "ا", s)
     s = re.sub(r"[ىي]", "ي", s)
     s = re.sub(r"[ةه]", "ه", s)
-    s = re.sub(r"[^\u0600-\u06FF\s]", " ", s)  # إزالة الرموز
+    s = re.sub(r"[^\u0600-\u06FF\s]", " ", s)
     s = re.sub(r"\s+", " ", s)
     return s.strip().lower()
 
@@ -110,31 +110,34 @@ def count_all():
     return total, stats
 
 # ============================================
-# البحث الذكي (محسّن)
+# البحث الذكي (محسّن مع سقف للاستعلامات القصيرة)
 # ============================================
 def retrieve(query, k=5):
     """
-    بحث نصي ذكي:
-    - يتجاهل الكلمات القصيرة (أقل من 3 أحرف)
-    - يستخدم مطابقة كاملة + مطابقة كلمات
-    - عتبات صارمة لمنع النتائج الخاطئة
+    بحث نصي ذكي مع قيود على الاستعلامات القصيرة:
+    - استعلام < 3 كلمات: تقييد النتيجة بـ 0.55 كحد أقصى
+    - مطابقة مباشرة فقط للاستعلامات الطويلة (3+ كلمات و 15+ حرف)
+    - عقوبات متعددة للتداخل الضعيف
     """
     items = _load_sources()
     if not items:
         return []
 
     q_norm = _normalize(query)
-    q_words = _words(query)  # كلمات ذات معنى فقط
+    q_words = _words(query)
     q_word_set = set(q_words)
     q_word_count = len(q_words)
 
-    # إذا كان الاستعلام قصيرًا جدًا، ارفض البحث
+    # ❌ ارفض الاستعلامات الفارغة
     if q_word_count == 0:
         return []
 
-    # إذا كان الاستعلام كلمة واحدة قصيرة (3-4 أحرف)، ارفض
+    # ❌ ارفض كلمة واحدة قصيرة (< 5 أحرف)
     if q_word_count == 1 and len(q_words[0]) < 5:
         return []
+
+    # ⚠️ علم الاستعلام القصير
+    is_short_query = q_word_count < 3
 
     scored = []
 
@@ -142,45 +145,49 @@ def retrieve(query, k=5):
         t_norm = _normalize(it["text"])
         t_words = set(_words(it["text"]))
 
-        # 1) مطابقة مباشرة كاملة (فقط للاستعلامات الطويلة 3+ كلمات)
-        direct_match = False
-        if q_word_count >= 3 and len(q_norm) >= 15 and q_norm in t_norm:
-            direct_match = True
+        # 1) مطابقة مباشرة كاملة — فقط للاستعلامات الطويلة
+        direct_match = (
+            q_word_count >= 3
+            and len(q_norm) >= 15
+            and q_norm in t_norm
+        )
 
-        # 2) حساب النقاط
         if direct_match:
             score = 0.95
         else:
-            # مطابقة الكلمات المشتركة (Jaccard-like)
+            # 2) نسبة الكلمات المشتركة
             common = q_word_set & t_words
-            if q_word_count > 0:
-                overlap_ratio = len(common) / q_word_count
-            else:
-                overlap_ratio = 0
+            overlap_ratio = len(common) / q_word_count if q_word_count else 0
 
-            # نسبة SequenceMatcher (للمطابقة الجزئية)
-            seq_ratio = SequenceMatcher(None, q_norm, t_norm).ratio()
-
-            # مطابقة الكلمات المتتالية (phrase match) — أقوى من الكلمات المتفرقة
+            # 3) مكافأة العبارات المتتالية
             phrase_bonus = 0
             if q_word_count >= 2:
-                # ابحث عن كلمتين متتاليتين من الاستعلام في النص
                 for i in range(len(q_words) - 1):
                     phrase = f"{q_words[i]} {q_words[i+1]}"
                     if phrase in t_norm:
-                        phrase_bonus = 0.15
+                        phrase_bonus = 0.20
                         break
 
-            # الدمج: نعتمد على تكرار الكلمات أكثر من SequenceMatcher
-            word_based = overlap_ratio * 0.85 + phrase_bonus
-            score = max(word_based, seq_ratio * 0.6)
+            # 4) SequenceMatcher — بوزن منخفض (يخدع مع الكلمات الشائعة)
+            seq_ratio = SequenceMatcher(None, q_norm, t_norm).ratio()
 
-            # عقوبة إذا كانت المطابقة ضعيفة
-            if overlap_ratio < 0.4:
-                score *= 0.5
-            if overlap_ratio < 0.2:
-                score *= 0.3
+            # 5) الدمج
+            word_based = overlap_ratio * 0.80 + phrase_bonus
+            score = max(word_based, seq_ratio * 0.5)
 
+            # 6) عقوبات صارمة
+            if overlap_ratio < 0.5:
+                score *= 0.6
+            if overlap_ratio < 0.34:
+                score *= 0.4
+            if overlap_ratio < 0.20:
+                score *= 0.25
+
+        # 7) سقف للاستعلامات القصيرة — لا تتجاوز 0.55
+        if is_short_query:
+            score = min(score, 0.55)
+
+        # 8) عتبة القبول
         if score > 0.45:
             scored.append((score, it))
 
@@ -188,15 +195,13 @@ def retrieve(query, k=5):
     return [{**it, "similarity": round(s, 3)} for s, it in scored[:k]]
 
 # ============================================
-# التحقق
+# التحقق (نسخة صارمة)
 # ============================================
 def verify(query, sources):
     """
-    تصنيف النتيجة:
-    - verified: مطابقة عالية (95%+)
-    - checkable: مطابقة متوسطة
-    - human_review: مطابقة ضعيفة
-    - rejected: لا نتيجة
+    تصنيف النتيجة (نسخة صارمة):
+    - الاستعلامات القصيرة (< 3 كلمات) لا يمكن أن تكون "موثق"
+    - verified فقط عند مطابقة كاملة فعلية أو ثقة 90%+
     """
     if not sources:
         return {"status": "rejected", "confidence": "none", "score": 0}
@@ -206,20 +211,27 @@ def verify(query, sources):
     q_norm = _normalize(query)
     t_norm = _normalize(top["text"])
     q_words = _words(query)
+    q_word_count = len(q_words)
 
-    # مطابقة مباشرة فقط إذا كان الاستعلام طويلًا
+    # مطابقة مباشرة فعلية (فقط للاستعلامات الطويلة)
     direct_match = (
-        len(q_words) >= 3
+        q_word_count >= 3
         and len(q_norm) >= 15
         and q_norm in t_norm
     )
 
+    # ⚠️ الاستعلامات القصيرة: لا يمكن أن تكون "موثق" أبدًا
+    is_short_query = q_word_count < 3
+
     if direct_match:
         return {"status": "verified", "confidence": "high", "score": 0.95}
-    if score >= 0.88:
+
+    if score >= 0.90 and not is_short_query:
         return {"status": "verified", "confidence": "high", "score": score}
+
     if score >= 0.65:
         return {"status": "checkable", "confidence": "medium", "score": score}
+
     return {"status": "human_review", "confidence": "low", "score": score}
 
 # ============================================
@@ -457,7 +469,7 @@ def delete_source(source_id):
     return False
 
 def reindex_all():
-    """متوافق مع الكود القديم - لا نحتاجه الآن لكنه مُبقى"""
+    """متوافق مع الكود القديم"""
     global _CACHE
     _CACHE = None
     total, stats = count_all()
