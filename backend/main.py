@@ -115,24 +115,31 @@ def audit_page():
 if STATIC.exists():
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
+import threading
+
 @app.on_event("startup")
 def startup():
-    print("🚀 MAVIC starting (fixed version)...")
+    print("🚀 MAVIC starting (async reindex)...", flush=True)
+    # شغّل الفحص والفهرسة في خيط منفصل حتى لا يحجب فتح المنفذ
+    threading.Thread(target=_startup_reindex, daemon=True).start()
+    print("✅ Startup complete - port ready", flush=True)
+
+
+def _startup_reindex():
+    """يعمل في الخلفية بعد فتح المنفذ"""
+    import time
+    time.sleep(5)  # انتظر حتى يفتح uvicorn المنفذ
     try:
         total, st = count_all()
-        print(f"📚 مصادر في الملفات: {total} - {st}")
-        try:
-            _init_chroma()
-            from agents import _collection
-            c = _collection.count() if _collection else 0
-            print(f"📊 Chroma count at startup: {c}")
-            if c == 0 and total > 0:
-                print("⚠️ Chroma فارغ لكن المصادر موجودة - بدء فهرسة تلقائية...")
-                n, breakdown = reindex_all()
-                print(f"✅ Auto reindex complete: {n} docs - {breakdown}")
-        except Exception as e:
-            print(f"⚠️ خطأ في فحص Chroma: {e}")
-            traceback.print_exc()
+        print(f"📚 مصادر في الملفات: {total} - {st}", flush=True)
+        _init_chroma()
+        from agents import _collection
+        c = _collection.count() if _collection else 0
+        print(f"📊 Chroma count at startup: {c}", flush=True)
+        if c == 0 and total > 0:
+            print("⚠️ Chroma فارغ - بدء الفهرسة في الخلفية...", flush=True)
+            n, breakdown = reindex_all()
+            print(f"✅ Auto reindex complete: {n} docs", flush=True)
     except Exception as e:
-        print(f"⚠️ خطأ في قراءة المصادر: {e}")
+        print(f"⚠️ خطأ في الفهرسة: {e}", flush=True)
         traceback.print_exc()
