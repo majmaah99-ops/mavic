@@ -95,8 +95,21 @@ body::before {
   font-size:56px;
   font-weight:900;
   letter-spacing:10px;
-  margin:10px 0 5px;
+  margin:5px 0 5px;
   font-family:'Cairo',sans-serif;
+  display:none;  /* الشعار يحتوي على MAVIC بالفعل */
+}
+
+.logo-card img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 10px;
+  filter: drop-shadow(0 4px 12px rgba(13,59,62,.2));
+}
+
+.logo-card .divider {
+  margin: 10px 0 8px;
 }
 
 .logo-card p {
