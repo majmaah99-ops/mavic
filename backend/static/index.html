@@ -44,11 +44,11 @@ body {
 }
 
 .logo-card {
-  background: linear-gradient(145deg, #F8F5EF 0%, #F0EAE0 100%);
-  border: 2px solid #C9A961;
-  border-radius: 20px;
-  padding: 15px 15px 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.3), 0 0 40px rgba(201,169,97,.12);
+  background: transparent;   /* إزالة الإطار والخلفية */
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
   max-width: 240px;
   margin: 0 auto 15px;
   position:relative;
@@ -56,21 +56,7 @@ body {
 
 .logo-card::before,
 .logo-card::after {
-  content:'';
-  position:absolute;
-  width:35px; height:35px;
-  border:1.5px solid #C9A961;
-  opacity:.4;
-}
-.logo-card::before {
-  top:8px; right:8px;
-  border-left:none; border-bottom:none;
-  border-radius: 0 12px 0 0;
-}
-.logo-card::after {
-  bottom:8px; left:8px;
-  border-right:none; border-top:none;
-  border-radius: 0 0 0 12px;
+  display: none;   /* إزالة الزخارف الجانبية */
 }
 
 .logo-card img {
@@ -79,7 +65,7 @@ body {
   height: auto;
   display: block;
   margin: 0 auto;
-  filter: drop-shadow(0 3px 8px rgba(13,59,62,.12));
+  filter: drop-shadow(0 3px 12px rgba(16,185,129,.25));
 }
 
 /* إخفاء النص المكرر */
@@ -374,7 +360,7 @@ textarea::placeholder { color:#64748b; }
   <!-- ===== الإحصائيات ===== -->
   <div class="stats">
     <div class="stat"><div class="stat-label">إجمالي المصادر</div><div class="stat-value" id="total">—</div></div>
-    <div class="stat"><div class="stat-label">القرآن</div><div class="stat-value" id="quran">—</div></div>
+    <div class="stat"><div class="stat-label">القرآن الكريم</div><div class="stat-value" id="quran">—</div></div>
     <div class="stat"><div class="stat-label">الأحاديث</div><div class="stat-value" id="hadith">—</div></div>
     <div class="stat"><div class="stat-label">الفقه</div><div class="stat-value" id="other">—</div></div>
   </div>
