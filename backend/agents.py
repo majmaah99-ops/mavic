@@ -276,11 +276,11 @@ def solve_fiqh(q):
 def refer():
     return (
         "⚠️ **لم أجد مرجعًا كافيًا للتحقق**\n\n"
-        "يُنصح بالرجوع إلى:\n"
-        "- [اللجنة الدائمة للبحوث العلمية والإفتاء](https://www.alifta.gov.sa)\n"
-        "- [المجمع الفقهي الإسلامي](https://www.fiqhacademy.org.sa)\n"
-        "- [الإسلام سؤال وجواب](https://islamqa.info/ar)\n"
-        "- [دار الإفتاء المصرية](https://www.dar-alifta.org)"
+        "يُنصح بالرجوع إلى المصادر السعودية الرسمية:\n"
+        "- [الرئاسة العامة للبحوث العلمية والإفتاء](https://www.alifta.gov.sa)\n"
+        "- [هيئة كبار العلماء](https://www.alifta.gov.sa/ar/Pages/Fatwa.aspx)\n"
+        "- [مجمع الفقه الإسلامي - رابطة العالم الإسلامي](https://www.fiqhacademy.org.sa)\n"
+        "- [البوابة الوطنية الموحدة للفتوى](https://www.my.gov.sa)"
     )
 
 # ============================================
