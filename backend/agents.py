@@ -55,9 +55,24 @@ def _normalize(s):
     s = re.sub(r"\s+", " ", s)
     return s.strip().lower()
 
+def _strip_prefixes(w):
+    """إزالة البادئات العربية الشائعة لمطابقة أفضل"""
+    prefixes = ["وال", "بال", "فال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "ك"]
+    for p in prefixes:
+        if w.startswith(p) and len(w) - len(p) >= 3:
+            return w[len(p):]
+    return w
+
 def _words(s):
-    """استخراج كلمات ذات معنى (3+ أحرف)"""
-    return [w for w in _normalize(s).split() if len(w) >= 3]
+    """استخراج كلمات ذات معنى (3+ أحرف) مع إزالة البادئات"""
+    out = set()
+    for w in _normalize(s).split():
+        if len(w) >= 3:
+            out.add(w)
+        stripped = _strip_prefixes(w)
+        if stripped != w and len(stripped) >= 3:
+            out.add(stripped)
+    return out
 
 # ============================================
 # الحماية من Prompt Injection
@@ -110,14 +125,15 @@ def count_all():
     return total, stats
 
 # ============================================
-# البحث الذكي (محسّن مع سقف للاستعلامات القصيرة)
+# البحث الذكي (محسّن مع إزالة البادئات)
 # ============================================
 def retrieve(query, k=5):
     """
-    بحث نصي ذكي مع قيود على الاستعلامات القصيرة:
-    - استعلام < 3 كلمات: تقييد النتيجة بـ 0.55 كحد أقصى
-    - مطابقة مباشرة فقط للاستعلامات الطويلة (3+ كلمات و 15+ حرف)
-    - عقوبات متعددة للتداخل الضعيف
+    بحث نصي ذكي مع:
+    - إزالة البادئات العربية (ال، و، بال، فال...)
+    - قيود على الاستعلامات القصيرة
+    - مطابقة مباشرة للاستعلامات الطويلة
+    - عقوبات للتداخل الضعيف
     """
     items = _load_sources()
     if not items:
@@ -125,25 +141,25 @@ def retrieve(query, k=5):
 
     q_norm = _normalize(query)
     q_words = _words(query)
-    q_word_set = set(q_words)
+    q_word_set = q_words
     q_word_count = len(q_words)
 
-    # ❌ ارفض الاستعلامات الفارغة
+    # ارفض الاستعلامات الفارغة
     if q_word_count == 0:
         return []
 
-    # ❌ ارفض كلمة واحدة قصيرة (< 5 أحرف)
-    if q_word_count == 1 and len(q_words[0]) < 5:
+    # ارفض كلمة واحدة قصيرة (< 5 أحرف)
+    if q_word_count == 1 and len(list(q_words)[0]) < 5:
         return []
 
-    # ⚠️ علم الاستعلام القصير
+    # علم الاستعلام القصير
     is_short_query = q_word_count < 3
 
     scored = []
 
     for it in items:
         t_norm = _normalize(it["text"])
-        t_words = set(_words(it["text"]))
+        t_words = _words(it["text"])
 
         # 1) مطابقة مباشرة كاملة — فقط للاستعلامات الطويلة
         direct_match = (
@@ -161,14 +177,15 @@ def retrieve(query, k=5):
 
             # 3) مكافأة العبارات المتتالية
             phrase_bonus = 0
+            q_words_list = list(q_words)
             if q_word_count >= 2:
-                for i in range(len(q_words) - 1):
-                    phrase = f"{q_words[i]} {q_words[i+1]}"
+                for i in range(len(q_words_list) - 1):
+                    phrase = f"{q_words_list[i]} {q_words_list[i+1]}"
                     if phrase in t_norm:
                         phrase_bonus = 0.20
                         break
 
-            # 4) SequenceMatcher — بوزن منخفض (يخدع مع الكلمات الشائعة)
+            # 4) SequenceMatcher
             seq_ratio = SequenceMatcher(None, q_norm, t_norm).ratio()
 
             # 5) الدمج
@@ -183,25 +200,25 @@ def retrieve(query, k=5):
             if overlap_ratio < 0.20:
                 score *= 0.25
 
-        # 7) سقف للاستعلامات القصيرة — لا تتجاوز 0.55
+        # 7) سقف للاستعلامات القصيرة
         if is_short_query:
             score = min(score, 0.55)
 
         # 8) عتبة القبول
-        if score > 0.45:
+        if score > 0.40:
             scored.append((score, it))
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return [{**it, "similarity": round(s, 3)} for s, it in scored[:k]]
 
 # ============================================
-# التحقق (نسخة صارمة)
+# التحقق
 # ============================================
 def verify(query, sources):
     """
-    تصنيف النتيجة (نسخة صارمة):
+    تصنيف النتيجة:
     - الاستعلامات القصيرة (< 3 كلمات) لا يمكن أن تكون "موثق"
-    - verified فقط عند مطابقة كاملة فعلية أو ثقة 90%+
+    - verified فقط عند مطابقة كاملة أو ثقة 90%+
     """
     if not sources:
         return {"status": "rejected", "confidence": "none", "score": 0}
@@ -213,14 +230,13 @@ def verify(query, sources):
     q_words = _words(query)
     q_word_count = len(q_words)
 
-    # مطابقة مباشرة فعلية (فقط للاستعلامات الطويلة)
+    # مطابقة مباشرة فعلية
     direct_match = (
         q_word_count >= 3
         and len(q_norm) >= 15
         and q_norm in t_norm
     )
 
-    # ⚠️ الاستعلامات القصيرة: لا يمكن أن تكون "موثق" أبدًا
     is_short_query = q_word_count < 3
 
     if direct_match:
@@ -229,7 +245,7 @@ def verify(query, sources):
     if score >= 0.90 and not is_short_query:
         return {"status": "verified", "confidence": "high", "score": score}
 
-    if score >= 0.65:
+    if score >= 0.60:
         return {"status": "checkable", "confidence": "medium", "score": score}
 
     return {"status": "human_review", "confidence": "low", "score": score}
@@ -239,17 +255,19 @@ def verify(query, sources):
 # ============================================
 FQ_KEYS = [
     # الميراث
-    "ميراث", "تركة", "فروض", "ورثة", "نصيب", "إرث", "تركات",
+    "ميراث", "تركة", "فروض", "ورثة", "نصيب", "إرث", "تركات", "وصية",
     # الزكاة
     "زكاة", "نصاب", "حول", "زكاة الذهب", "زكاة الفطر", "زكاة المال",
     # الصلاة
-    "صلاة", "قصر", "جمع", "وتر", "جمعة", "صلوات", "أوقات الصلاة",
+    "صلاة", "قصر", "جمع", "وتر", "جمعة", "صلوات", "أوقات الصلاة", "جماعة",
     # الصيام
     "صيام", "صوم", "رمضان", "فطر", "قضاء", "كفارة",
     # الحج
     "حج", "عمرة", "طواف", "إحرام", "سعي", "عرفة",
     # الطهارة
-    "وضوء", "غسل", "تيمم", "طهارة", "نجاسة",
+    "وضوء", "غسل", "تيمم", "طهارة", "نجاسة", "حيض", "نفاس",
+    # المعاملات
+    "ربا", "بيع", "شراء", "دين", "قرض", "نكاح", "زواج", "طلاق",
 ]
 
 def is_fiqh(q):
@@ -378,6 +396,9 @@ def run_query(query):
     else:
         status_text = "موثّق" if verdict["status"] == "verified" else "قابل للتحقق"
         answer = f"✅ **{status_text}** (ثقة {int(verdict['score'] * 100)}%)"
+        # إضافة نص المصدر الأول للإجابة
+        if sources:
+            answer += "\n\n" + sources[0]["text"]
 
     h = audit_log(qid, query, agents, sources, answer, verdict["confidence"])
     return {
