@@ -9,12 +9,16 @@
 
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; }
 
+html, body { height:100%; }
+
 body {
   background:#0f172a;
   color:#fff;
   min-height:100vh;
   padding:20px;
   position:relative;
+  display:flex;
+  gap:20px;
 }
 
 /* العناصر المزخرفة */
@@ -29,162 +33,106 @@ body {
 .bg2 { bottom:-10%; left:-15%; width:700px; height:700px; background:rgba(245,158,11,.1); }
 .bg3 { top:40%; left:20%; width:400px; height:400px; background:rgba(20,184,166,.1); }
 
-/* ===== زر فتح القائمة الجانبية ===== */
-.menu-toggle {
-  position:fixed;
-  top:20px;
-  right:20px;
-  z-index:100;
-  width:50px;
-  height:50px;
-  border-radius:14px;
-  background: linear-gradient(135deg, #10b981, #14b8a6);
-  border:none;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow: 0 8px 25px rgba(16,185,129,.35);
-  transition: all .3s;
-}
-.menu-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 35px rgba(16,185,129,.5);
-}
-.menu-toggle svg {
-  width:24px;
-  height:24px;
-  stroke:#fff;
-  stroke-width:2.5;
-  fill:none;
+/* ===== المحتوى الرئيسي ===== */
+.container {
+  flex:1;
+  max-width:900px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+  padding-left: 360px; /* مساحة للقائمة الجانبية الثابتة */
 }
 
-/* ===== القائمة الجانبية ===== */
-.sidebar-overlay {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  backdrop-filter: blur(4px);
-  z-index:200;
-  opacity:0;
-  pointer-events:none;
-  transition: opacity .3s;
-}
-.sidebar-overlay.active {
-  opacity:1;
-  pointer-events:all;
-}
-
+/* ===== القائمة الجانبية الثابتة ===== */
 .sidebar {
   position:fixed;
-  top:0;
-  right:-420px;
-  width:420px;
-  max-width:90vw;
-  height:100vh;
+  top:20px;
+  left:20px;
+  width:340px;
+  height:calc(100vh - 40px);
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border-left: 2px solid rgba(16,185,129,.3);
-  z-index:300;
+  border: 1.5px solid rgba(16,185,129,.3);
+  border-radius:20px;
+  z-index:100;
   overflow-y:auto;
-  padding:24px;
-  transition: right .4s cubic-bezier(.4,0,.2,1);
-  box-shadow: -20px 0 60px rgba(0,0,0,.5);
+  padding:22px;
+  box-shadow: 0 15px 50px rgba(0,0,0,.4);
+  transition: transform .4s cubic-bezier(.4,0,.2,1);
 }
-.sidebar.active {
-  right:0;
+
+/* شريط التمرير للقائمة */
+.sidebar::-webkit-scrollbar { width:6px; }
+.sidebar::-webkit-scrollbar-track { background:transparent; }
+.sidebar::-webkit-scrollbar-thumb {
+  background:rgba(16,185,129,.3);
+  border-radius:3px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background:rgba(16,185,129,.5);
 }
 
 .sidebar-header {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-bottom:24px;
+  margin-bottom:20px;
   padding-bottom:16px;
   border-bottom: 1px solid rgba(255,255,255,.1);
 }
 .sidebar-header h2 {
   color:#6ee7b7;
-  font-size:20px;
+  font-size:18px;
   font-weight:800;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.sidebar-close {
-  background:rgba(255,255,255,.06);
-  border:none;
-  width:38px;
-  height:38px;
-  border-radius:10px;
-  cursor:pointer;
-  color:#94a3b8;
-  font-size:20px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition: all .2s;
-}
-.sidebar-close:hover {
-  background:rgba(239,68,68,.2);
-  color:#fca5a5;
-}
-
-.sidebar-section {
-  margin-bottom:24px;
-}
-.sidebar-section h3 {
-  color:#fff;
-  font-size:16px;
-  font-weight:700;
-  margin-bottom:12px;
   display:flex;
   align-items:center;
   gap:8px;
 }
+
+.sidebar-section {
+  margin-bottom:22px;
+}
+.sidebar-section h3 {
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
 .sidebar-section p {
   color:#94a3b8;
-  font-size:14px;
-  line-height:1.8;
-  margin-bottom:12px;
-}
-.sidebar-section .badge-demo {
-  display:inline-block;
-  background: rgba(16,185,129,.15);
-  color:#6ee7b7;
-  padding:4px 12px;
-  border-radius:8px;
-  font-size:12px;
-  font-weight:600;
+  font-size:13px;
+  line-height:1.7;
   margin-bottom:10px;
-  border: 1px solid rgba(16,185,129,.3);
 }
 
 /* أمثلة قابلة للنقر */
 .example-item {
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.08);
-  border-radius:12px;
-  padding:14px 16px;
-  margin-bottom:10px;
+  border-radius:10px;
+  padding:11px 14px;
+  margin-bottom:8px;
   cursor:pointer;
   transition: all .25s;
   position:relative;
-  padding-right:44px;
+  padding-right:38px;
 }
 .example-item::before {
   content:'🔍';
   position:absolute;
-  right:14px;
+  right:12px;
   top:50%;
   transform: translateY(-50%);
   opacity:.5;
-  font-size:16px;
+  font-size:14px;
   transition: all .25s;
 }
 .example-item:hover {
   background: rgba(16,185,129,.1);
   border-color: rgba(16,185,129,.4);
-  transform: translateX(-4px);
+  transform: translateX(-3px);
 }
 .example-item:hover::before {
   opacity:1;
@@ -192,14 +140,14 @@ body {
 }
 .example-item .example-text {
   color:#e2e8f0;
-  font-size:14px;
-  line-height:1.6;
+  font-size:13px;
+  line-height:1.5;
   font-weight:500;
 }
 .example-item .example-hint {
   color:#64748b;
-  font-size:11px;
-  margin-top:4px;
+  font-size:10px;
+  margin-top:2px;
 }
 .example-item:hover .example-text {
   color:#6ee7b7;
@@ -210,45 +158,83 @@ body {
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:24px;
-  height:24px;
+  width:22px;
+  height:22px;
   border-radius:50%;
   background: linear-gradient(135deg, #10b981, #14b8a6);
   color:#fff;
-  font-size:12px;
+  font-size:11px;
   font-weight:800;
-  margin-left:8px;
+  margin-left:6px;
 }
 
 /* النتيجة الموحدة */
 .unified-result {
   background: rgba(16,185,129,.08);
-  border: 1.5px solid rgba(16,185,129,.3);
-  border-radius:12px;
-  padding:12px 16px;
-  margin-top:12px;
+  border: 1px solid rgba(16,185,129,.3);
+  border-radius:10px;
+  padding:10px 14px;
+  margin-top:10px;
   color:#6ee7b7;
-  font-size:13px;
+  font-size:12px;
   font-weight:600;
   text-align:center;
+  line-height:1.5;
 }
 
 .sidebar-footer {
-  margin-top:32px;
-  padding-top:20px;
+  margin-top:24px;
+  padding-top:16px;
   border-top:1px solid rgba(255,255,255,.08);
   color:#64748b;
-  font-size:12px;
+  font-size:11px;
   text-align:center;
   line-height:1.7;
 }
 
-/* ===== المحتوى الرئيسي ===== */
-.container {
-  max-width:900px;
-  margin:0 auto;
-  position:relative;
-  z-index:1;
+/* زر إظهار/إخفاء القائمة (للجوال فقط) */
+.menu-toggle {
+  display:none;
+  position:fixed;
+  top:20px;
+  right:20px;
+  z-index:200;
+  width:48px;
+  height:48px;
+  border-radius:14px;
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  border:none;
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 8px 25px rgba(16,185,129,.35);
+  transition: all .3s;
+}
+.menu-toggle:hover {
+  transform: scale(1.05);
+}
+.menu-toggle svg {
+  width:22px;
+  height:22px;
+  stroke:#fff;
+  stroke-width:2.5;
+  fill:none;
+}
+
+/* الطبقة المعتمة (للجوال) */
+.sidebar-overlay {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index:90;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .3s;
+}
+.sidebar-overlay.active {
+  opacity:1;
+  pointer-events:all;
 }
 
 /* ===== الشعار والعنوان ===== */
@@ -535,17 +521,45 @@ textarea::placeholder { color:#64748b; }
   font-size:15px;
 }
 
-/* للجوال */
+/* ===== استجابة للجوال ===== */
+@media (max-width: 1024px) {
+  .container {
+    padding-left: 0;
+    max-width: 900px;
+  }
+  
+  .menu-toggle {
+    display:flex;
+  }
+  
+  .sidebar {
+    top:0;
+    left:-360px;
+    height:100vh;
+    width:340px;
+    max-width:90vw;
+    border-radius:0;
+    border-left:none;
+    border-right: 2px solid rgba(16,185,129,.3);
+    transition: left .4s cubic-bezier(.4,0,.2,1);
+  }
+  
+  .sidebar.active {
+    left:0;
+  }
+}
+
 @media (max-width: 600px) {
+  body { padding:14px; }
   .main-title { font-size:24px; }
-  .sidebar { width:100%; }
+  .sidebar { width:100%; max-width:100%; }
 }
 </style>
 </head>
 <body>
 <div class="bg1"></div><div class="bg2"></div><div class="bg3"></div>
 
-<!-- زر فتح القائمة الجانبية -->
+<!-- زر فتح القائمة (يظهر على الجوال فقط) -->
 <button class="menu-toggle" id="menuToggle" title="شرح قدرة الموقع">
   <svg viewBox="0 0 24 24">
     <line x1="3" y1="6" x2="21" y2="6"/>
@@ -554,14 +568,13 @@ textarea::placeholder { color:#64748b; }
   </svg>
 </button>
 
-<!-- الطبقة المعتمة -->
+<!-- الطبقة المعتمة (للجوال) -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- القائمة الجانبية -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <h2>💡 قدرة الموقع الذكية</h2>
-    <button class="sidebar-close" id="sidebarClose">✕</button>
   </div>
 
   <div class="sidebar-section">
@@ -574,9 +587,9 @@ textarea::placeholder { color:#64748b; }
   </div>
 
   <div class="sidebar-section">
-    <h3>📌 مثال: حكم القصر والجمع للمسافر</h3>
-    <p style="font-size:13px;">
-      جرّب أي صيغة من الصيغ التالية، وستحصل على <strong style="color:#6ee7b7;">نفس الحكم الفقهي</strong>:
+    <h3>📌 مثال 1: حكم القصر والجمع للمسافر</h3>
+    <p style="font-size:12px;">
+      جرّب أي صيغة، وستحصل على <strong style="color:#6ee7b7;">نفس الحكم الفقهي</strong>:
     </p>
 
     <div class="example-item" data-q="حكم القصر والجمع للمسافر">
@@ -601,9 +614,6 @@ textarea::placeholder { color:#64748b; }
 
   <div class="sidebar-section">
     <h3><span class="group-number">2</span> مثال: حكم زكاة الذهب</h3>
-    <p style="font-size:13px;">
-      نفس المبدأ — صيغ متعددة، نتيجة واحدة:
-    </p>
 
     <div class="example-item" data-q="حكم زكاة الذهب">
       <div class="example-text">حكم زكاة الذهب</div>
@@ -627,9 +637,6 @@ textarea::placeholder { color:#64748b; }
 
   <div class="sidebar-section">
     <h3><span class="group-number">3</span> مثال: حديث النيات</h3>
-    <p style="font-size:13px;">
-      البحث في قاعدة البيانات يفهم الصيغ المختلفة:
-    </p>
 
     <div class="example-item" data-q="إنما الأعمال بالنيات">
       <div class="example-text">إنما الأعمال بالنيات</div>
@@ -717,28 +724,31 @@ textarea::placeholder { color:#64748b; }
     });
   }
 
-  // ===== فتح/إغلاق القائمة الجانبية =====
+  // ===== فتح/إغلاق القائمة (للجوال) =====
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
   const menuToggle = document.getElementById("menuToggle");
-  const sidebarClose = document.getElementById("sidebarClose");
 
-  function openSidebar() {
-    sidebar.classList.add("active");
-    overlay.classList.add("active");
-  }
-  function closeSidebar() {
-    sidebar.classList.remove("active");
-    overlay.classList.remove("active");
+  if (menuToggle) {
+    menuToggle.addEventListener("click", function() {
+      sidebar.classList.toggle("active");
+      overlay.classList.toggle("active");
+    });
   }
 
-  menuToggle.addEventListener("click", openSidebar);
-  sidebarClose.addEventListener("click", closeSidebar);
-  overlay.addEventListener("click", closeSidebar);
+  if (overlay) {
+    overlay.addEventListener("click", function() {
+      sidebar.classList.remove("active");
+      overlay.classList.remove("active");
+    });
+  }
 
-  // إغلاق عند الضغط على Escape
+  // إغلاق عند Escape
   document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") closeSidebar();
+    if (e.key === "Escape") {
+      sidebar.classList.remove("active");
+      overlay.classList.remove("active");
+    }
   });
 
   async function loadStats() {
@@ -833,8 +843,10 @@ textarea::placeholder { color:#64748b; }
         const q = this.getAttribute("data-q");
         if (q) {
           document.getElementById("q").value = q;
-          closeSidebar();
-          // تمرير لأعلى حقل الإدخال
+          // إغلاق القائمة (على الجوال)
+          sidebar.classList.remove("active");
+          overlay.classList.remove("active");
+          // تمرير لحقل الإدخال
           document.getElementById("q").scrollIntoView({ behavior: "smooth", block: "center" });
           document.getElementById("q").focus();
         }
