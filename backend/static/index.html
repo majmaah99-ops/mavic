@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
 <title>MAVIC — منصة التحقق الذكية</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
@@ -15,11 +16,13 @@ body {
   background:#0f172a;
   color:#fff;
   min-height:100vh;
+  min-height:100dvh;
   padding:20px;
   position:relative;
-  display:flex;
-  gap:20px;
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
 }
+body.no-scroll { overflow:hidden; }
 
 /* العناصر المزخرفة */
 .bg1,.bg2,.bg3 {
@@ -35,12 +38,16 @@ body {
 
 /* ===== المحتوى الرئيسي ===== */
 .container {
-  flex:1;
+  width:100%;
   max-width:900px;
   margin:0 auto;
   position:relative;
   z-index:1;
-  padding-left: 360px; /* مساحة للقائمة الجانبية الثابتة */
+}
+
+/* ===== الشاشات الكبيرة: القائمة ظاهرة دائماً والمحتوى مُنزاح لليمين ===== */
+@media (min-width: 993px) {
+  body { padding-left: 380px; } /* 20 هامش + 340 عرض القائمة + 20 فاصل */
 }
 
 /* ===== القائمة الجانبية الثابتة ===== */
@@ -50,11 +57,13 @@ body {
   left:20px;
   width:340px;
   height:calc(100vh - 40px);
+  height:calc(100dvh - 40px);
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   border: 1.5px solid rgba(16,185,129,.3);
   border-radius:20px;
   z-index:100;
   overflow-y:auto;
+  overscroll-behavior:contain;
   padding:22px;
   box-shadow: 0 15px 50px rgba(0,0,0,.4);
   transition: transform .4s cubic-bezier(.4,0,.2,1);
@@ -196,8 +205,8 @@ body {
 .menu-toggle {
   display:none;
   position:fixed;
-  top:20px;
-  right:20px;
+  top:16px;
+  right:16px;
   z-index:200;
   width:48px;
   height:48px;
@@ -213,6 +222,9 @@ body {
 .menu-toggle:hover {
   transform: scale(1.05);
 }
+.menu-toggle .icon-close { display:none; }
+.menu-toggle.open .icon-open { display:none; }
+.menu-toggle.open .icon-close { display:block; }
 .menu-toggle svg {
   width:22px;
   height:22px;
@@ -521,38 +533,73 @@ textarea::placeholder { color:#64748b; }
   font-size:15px;
 }
 
-/* ===== استجابة للجوال ===== */
-@media (max-width: 1024px) {
-  .container {
-    padding-left: 0;
-    max-width: 900px;
+/* ===== الجوال والأجهزة اللوحية: القائمة قابلة للطي بزر ☰ ===== */
+@media (max-width: 992px) {
+  body {
+    padding: 14px;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
-  
+
+  .container { padding-top: 62px; } /* مساحة لزر ☰ */
+
   .menu-toggle {
     display:flex;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: 14px;
   }
-  
+
   .sidebar {
     top:0;
-    left:-360px;
-    height:100vh;
-    width:340px;
-    max-width:90vw;
-    border-radius:0;
-    border-left:none;
-    border-right: 2px solid rgba(16,185,129,.3);
-    transition: left .4s cubic-bezier(.4,0,.2,1);
-  }
-  
-  .sidebar.active {
     left:0;
+    height:100vh;
+    height:100dvh;
+    width:340px;
+    max-width:82vw;
+    border-radius:0 20px 20px 0;
+    border-left:none;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-105%);
+    visibility:hidden;
+    transition: transform .35s cubic-bezier(.4,0,.2,1), visibility 0s linear .35s;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+    visibility:visible;
+    transition: transform .35s cubic-bezier(.4,0,.2,1), visibility 0s;
   }
 }
 
+/* إخفاء الزر والطبقة المعتمة نهائياً على الشاشات الكبيرة */
+@media (min-width: 993px) {
+  .menu-toggle, .sidebar-overlay { display:none !important; }
+}
+
 @media (max-width: 600px) {
-  body { padding:14px; }
   .main-title { font-size:24px; }
-  .sidebar { width:100%; max-width:100%; }
+  .subtitle { font-size:14px; margin-bottom:22px; }
+  .logo-section { margin-bottom:20px; }
+  .logo-card img { width:110px; }
+
+  .stats { grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; }
+  .stat { padding:14px 10px; border-radius:14px; }
+  .stat-value { font-size:22px; }
+
+  .card { padding:18px; border-radius:18px; }
+  .card h2 { font-size:16px; margin-bottom:14px; }
+  textarea { min-height:120px; padding:14px; font-size:16px; } /* 16px يمنع تكبير iOS التلقائي */
+  .btn { height:52px; font-size:16px; }
+
+  .loading-notice { padding:18px; }
+  .result { padding:18px; border-radius:14px; }
+  .answer { font-size:15px; line-height:1.8; overflow-wrap:anywhere; }
+  .source { padding:14px; }
+  .source p { overflow-wrap:anywhere; }
+}
+
+@media (hover: none) {
+  .stat:hover, .btn:hover:not(:disabled), .menu-toggle:hover { transform:none; }
 }
 </style>
 </head>
@@ -560,11 +607,15 @@ textarea::placeholder { color:#64748b; }
 <div class="bg1"></div><div class="bg2"></div><div class="bg3"></div>
 
 <!-- زر فتح القائمة (يظهر على الجوال فقط) -->
-<button class="menu-toggle" id="menuToggle" title="شرح قدرة الموقع">
-  <svg viewBox="0 0 24 24">
+<button class="menu-toggle" id="menuToggle" type="button" title="شرح قدرة الموقع" aria-label="فتح القائمة" aria-controls="sidebar" aria-expanded="false">
+  <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true">
     <line x1="3" y1="6" x2="21" y2="6"/>
     <line x1="3" y1="12" x2="21" y2="12"/>
     <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+  <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true">
+    <line x1="5" y1="5" x2="19" y2="19"/>
+    <line x1="19" y1="5" x2="5" y2="19"/>
   </svg>
 </button>
 
@@ -717,6 +768,15 @@ textarea::placeholder { color:#64748b; }
     });
   }
 
+  // يقرأ الرد كـ JSON بأمان؛ إن رجع الخادم صفحة HTML (404/تسجيل دخول...) يرمي خطأً واضحاً
+  async function readJson(r) {
+    const ct = (r.headers.get("content-type") || "").toLowerCase();
+    if (ct.indexOf("json") === -1) {
+      throw new Error("الخادم لم يُرجع JSON (الحالة " + r.status + "). تأكد أن الصفحة تُفتح من خادم MAVIC وأن المسار " + new URL(r.url).pathname + " موجود.");
+    }
+    return r.json();
+  }
+
   function formatAnswer(text) {
     const escaped = escapeHtml(text);
     return escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(m, label, url) {
@@ -724,44 +784,60 @@ textarea::placeholder { color:#64748b; }
     });
   }
 
-  // ===== فتح/إغلاق القائمة (للجوال) =====
+  // ===== فتح/إغلاق القائمة (للجوال فقط) =====
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
   const menuToggle = document.getElementById("menuToggle");
+  const desktopQuery = window.matchMedia("(min-width: 993px)");
+
+  function setMenu(open) {
+    if (open && desktopQuery.matches) return; // على الشاشات الكبيرة القائمة ظاهرة دائماً
+    sidebar.classList.toggle("active", open);
+    overlay.classList.toggle("active", open);
+    document.body.classList.toggle("no-scroll", open);
+    if (menuToggle) {
+      menuToggle.classList.toggle("open", open);
+      menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      menuToggle.setAttribute("aria-label", open ? "إغلاق القائمة" : "فتح القائمة");
+    }
+  }
 
   if (menuToggle) {
     menuToggle.addEventListener("click", function() {
-      sidebar.classList.toggle("active");
-      overlay.classList.toggle("active");
+      setMenu(!sidebar.classList.contains("active"));
     });
   }
 
   if (overlay) {
-    overlay.addEventListener("click", function() {
-      sidebar.classList.remove("active");
-      overlay.classList.remove("active");
-    });
+    overlay.addEventListener("click", function() { setMenu(false); });
   }
 
   // إغلاق عند Escape
   document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") {
-      sidebar.classList.remove("active");
-      overlay.classList.remove("active");
-    }
+    if (e.key === "Escape") setMenu(false);
   });
+
+  // عند التكبير لشاشة كبيرة: نظّف حالة القائمة المفتوحة
+  const onBreakpointChange = function() { if (desktopQuery.matches) setMenu(false); };
+  if (desktopQuery.addEventListener) desktopQuery.addEventListener("change", onBreakpointChange);
+  else if (desktopQuery.addListener) desktopQuery.addListener(onBreakpointChange);
 
   async function loadStats() {
     try {
       const r = await fetch("/api/admin/stats");
-      const d = await r.json();
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const d = await readJson(r);
       document.getElementById("total").textContent = (d.total || 0).toLocaleString();
       document.getElementById("quran").textContent = ((d.breakdown && d.breakdown.quran) || 0).toLocaleString();
       document.getElementById("hadith").textContent = ((d.breakdown && d.breakdown.hadith) || 0).toLocaleString();
       const other = ((d.breakdown && d.breakdown.fiqh) || 0) + ((d.breakdown && d.breakdown.custom) || 0);
       document.getElementById("other").textContent = other.toLocaleString();
     } catch(e) {
-      console.error("Stats error:", e);
+      console.warn("Stats unavailable:", e.message);
+      ["total","quran","hadith","other"].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = "—";
+      });
     }
   }
 
@@ -788,7 +864,7 @@ textarea::placeholder { color:#64748b; }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: q })
       });
-      const d = await r.json();
+      const d = await readJson(r);
 
       loading.classList.remove("active");
 
@@ -844,8 +920,7 @@ textarea::placeholder { color:#64748b; }
         if (q) {
           document.getElementById("q").value = q;
           // إغلاق القائمة (على الجوال)
-          sidebar.classList.remove("active");
-          overlay.classList.remove("active");
+          setMenu(false);
           // تمرير لحقل الإدخال
           document.getElementById("q").scrollIntoView({ behavior: "smooth", block: "center" });
           document.getElementById("q").focus();
