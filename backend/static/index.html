@@ -47,14 +47,14 @@ body.no-scroll { overflow:hidden; }
 
 /* ===== الشاشات الكبيرة: القائمة ظاهرة دائماً والمحتوى مُنزاح لليمين ===== */
 @media (min-width: 993px) {
-  body { padding-left: 380px; } /* 20 هامش + 340 عرض القائمة + 20 فاصل */
+  body { padding-right: 380px; } /* 20 هامش + 340 عرض القائمة + 20 فاصل */
 }
 
 /* ===== القائمة الجانبية الثابتة ===== */
 .sidebar {
   position:fixed;
   top:20px;
-  left:20px;
+  right:20px;
   width:340px;
   height:calc(100vh - 40px);
   height:calc(100dvh - 40px);
@@ -206,7 +206,7 @@ body.no-scroll { overflow:hidden; }
   display:none;
   position:fixed;
   top:16px;
-  right:16px;
+  left:16px;
   z-index:200;
   width:48px;
   height:48px;
@@ -546,20 +546,20 @@ textarea::placeholder { color:#64748b; }
   .menu-toggle {
     display:flex;
     top: calc(14px + env(safe-area-inset-top, 0px));
-    right: 14px;
+    left: 14px;
   }
 
   .sidebar {
     top:0;
-    left:0;
+    right:0;
     height:100vh;
     height:100dvh;
     width:340px;
     max-width:82vw;
-    border-radius:0 20px 20px 0;
-    border-left:none;
+    border-radius:20px 0 0 20px;
+    border-right:none;
     padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-105%);
+    transform: translateX(105%);
     visibility:hidden;
     transition: transform .35s cubic-bezier(.4,0,.2,1), visibility 0s linear .35s;
   }
