@@ -5,29 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MAVIC — منصة التحقق الذكية</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
 
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; }
 
 body {
-  background: linear-gradient(135deg, #0D3B3E 0%, #0F4C4A 50%, #0A2A2C 100%);
+  background:#0f172a;
   color:#fff;
   min-height:100vh;
   padding:20px;
   position:relative;
-  overflow-x:hidden;
-}
-
-/* الزخارف الإسلامية في الخلفية */
-body::before {
-  content:'';
-  position:fixed;
-  inset:0;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(20,184,166,.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(201,169,97,.06) 0%, transparent 50%);
-  pointer-events:none;
-  z-index:0;
 }
 
 /* العناصر المزخرفة */
@@ -38,9 +25,9 @@ body::before {
   pointer-events:none;
   z-index:0;
 }
-.bg1 { top:-10%; right:-10%; width:600px; height:600px; background:rgba(20,184,166,.15); }
-.bg2 { bottom:-10%; left:-15%; width:700px; height:700px; background:rgba(201,169,97,.1); }
-.bg3 { top:40%; left:20%; width:400px; height:400px; background:rgba(13,59,62,.2); }
+.bg1 { top:-10%; right:-10%; width:600px; height:600px; background:rgba(16,185,129,.15); }
+.bg2 { bottom:-10%; left:-15%; width:700px; height:700px; background:rgba(245,158,11,.1); }
+.bg3 { top:40%; left:20%; width:400px; height:400px; background:rgba(20,184,166,.1); }
 
 .container {
   max-width:900px;
@@ -60,8 +47,8 @@ body::before {
   background: linear-gradient(145deg, #F8F5EF 0%, #F0EAE0 100%);
   border: 3px solid #C9A961;
   border-radius: 30px;
-  padding: 40px 30px 30px;
-  box-shadow: 0 15px 50px rgba(0,0,0,.4), 0 0 60px rgba(201,169,97,.2);
+  padding: 30px 25px 20px;
+  box-shadow: 0 15px 50px rgba(0,0,0,.4), 0 0 60px rgba(201,169,97,.15);
   max-width: 420px;
   margin: 0 auto 25px;
   position:relative;
@@ -71,77 +58,43 @@ body::before {
 .logo-card::after {
   content:'';
   position:absolute;
-  width:60px; height:60px;
+  width:50px; height:50px;
   border:2px solid #C9A961;
   opacity:.4;
 }
 .logo-card::before {
-  top:15px; right:15px;
+  top:12px; right:12px;
   border-left:none; border-bottom:none;
-  border-radius: 0 20px 0 0;
+  border-radius: 0 18px 0 0;
 }
 .logo-card::after {
-  bottom:15px; left:15px;
+  bottom:12px; left:12px;
   border-right:none; border-top:none;
-  border-radius: 0 0 0 20px;
-}
-
-.logo-card svg {
-  filter: drop-shadow(0 4px 10px rgba(13,59,62,.3));
-}
-
-.logo-card h1 {
-  color:#0D3B3E;
-  font-size:56px;
-  font-weight:900;
-  letter-spacing:10px;
-  margin:5px 0 5px;
-  font-family:'Cairo',sans-serif;
-  display:none;  /* الشعار يحتوي على MAVIC بالفعل */
+  border-radius: 0 0 0 18px;
 }
 
 .logo-card img {
   max-width: 100%;
+  width: 300px;
   height: auto;
   display: block;
-  margin: 0 auto 10px;
-  filter: drop-shadow(0 4px 12px rgba(13,59,62,.2));
+  margin: 0 auto;
+  filter: drop-shadow(0 4px 12px rgba(13,59,62,.15));
 }
 
+/* إخفاء النص المكرر */
+.logo-card h1,
+.logo-card p,
 .logo-card .divider {
-  margin: 10px 0 8px;
-}
-
-.logo-card p {
-  color:#0D3B3E;
-  font-size:13px;
-  font-weight:500;
-  margin-top:5px;
-  line-height:1.6;
-}
-
-.logo-card .divider {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  margin:15px 0 8px;
-}
-.logo-card .divider .line {
-  width:60px; height:1.5px;
-  background: linear-gradient(90deg, transparent, #C9A961, transparent);
-}
-.logo-card .divider .star {
-  color:#C9A961;
-  font-size:16px;
+  display: none;
 }
 
 .path-badge {
-  color:#C9A961;
+  color:#fcd34d;
   text-align:center;
   font-size:15px;
   font-weight:500;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 
 .main-title {
@@ -150,11 +103,11 @@ body::before {
   font-size:34px;
   font-weight:900;
   margin-bottom:10px;
-  text-shadow: 0 2px 20px rgba(20,184,166,.3);
+  text-shadow: 0 2px 20px rgba(16,185,129,.3);
 }
 
 .subtitle {
-  color:#14B8A6;
+  color:#6ee7b7;
   text-align:center;
   font-size:17px;
   margin-bottom:35px;
@@ -171,7 +124,7 @@ body::before {
 
 .stat {
   background: rgba(255,255,255,.05);
-  border: 1px solid rgba(20,184,166,.2);
+  border: 1px solid rgba(255,255,255,.1);
   border-radius:16px;
   padding:18px;
   text-align:center;
@@ -180,8 +133,8 @@ body::before {
 }
 .stat:hover {
   transform: translateY(-3px);
-  border-color: rgba(201,169,97,.4);
-  box-shadow: 0 10px 30px rgba(20,184,166,.15);
+  border-color: rgba(16,185,129,.3);
+  box-shadow: 0 10px 30px rgba(16,185,129,.15);
 }
 .stat-label {
   font-size:12px;
@@ -191,14 +144,13 @@ body::before {
 .stat-value {
   font-size:28px;
   font-weight:900;
-  color:#14B8A6;
-  text-shadow: 0 0 20px rgba(20,184,166,.4);
+  color:#6ee7b7;
 }
 
 /* ===== بطاقة الإدخال ===== */
 .card {
   background: rgba(255,255,255,.05);
-  border: 1px solid rgba(20,184,166,.15);
+  border: 1px solid rgba(255,255,255,.1);
   border-radius:24px;
   padding:32px;
   backdrop-filter: blur(20px);
@@ -221,20 +173,20 @@ textarea {
   min-height:140px;
   padding:18px;
   border-radius:14px;
-  background: rgba(13,59,62,.5);
-  border:1.5px solid rgba(20,184,166,.2);
+  background: rgba(15,23,42,.6);
+  border:1px solid rgba(255,255,255,.1);
   color:#fff;
   font-size:15px;
   line-height:1.7;
   resize:vertical;
   outline:none;
   transition: all .3s;
-  font-family:'Cairo',sans-serif;
+  font-family:'Tajawal',sans-serif;
 }
 textarea:focus {
-  border-color: #14B8A6;
-  box-shadow: 0 0 0 3px rgba(20,184,166,.2);
-  background: rgba(13,59,62,.7);
+  border-color: rgba(16,185,129,.5);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.2);
+  background: rgba(15,23,42,.8);
 }
 textarea::placeholder { color:#64748b; }
 
@@ -244,8 +196,8 @@ textarea::placeholder { color:#64748b; }
   height:56px;
   border:none;
   border-radius:14px;
-  background: linear-gradient(135deg, #C9A961 0%, #B8934A 100%);
-  color:#0D3B3E;
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  color:#fff;
   font-size:17px;
   font-weight:900;
   cursor:pointer;
@@ -253,20 +205,20 @@ textarea::placeholder { color:#64748b; }
   margin-top:18px;
   position:relative;
   overflow:hidden;
-  font-family:'Cairo',sans-serif;
+  font-family:'Tajawal',sans-serif;
 }
 .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(201,169,97,.4);
+  box-shadow: 0 15px 40px rgba(16,185,129,.35);
 }
 .btn:disabled {
   opacity:.85;
   cursor:not-allowed;
-  background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+  background: linear-gradient(135deg, #10b981, #0d9488);
   color:#fff;
 }
 
-/* Spinner للزر */
+/* Spinner داخل الزر */
 .btn.loading::after {
   content:'';
   position:absolute;
@@ -278,20 +230,20 @@ textarea::placeholder { color:#64748b; }
   border:3px solid rgba(255,255,255,.3);
   border-top-color:#fff;
   border-radius:50%;
-  animation: spin .8s linear infinite;
+  animation: spinBtn .8s linear infinite;
 }
 
-@keyframes spin {
+@keyframes spinBtn {
   to { transform: translateY(-50%) rotate(360deg); }
 }
 
 /* ===== إشعار جاري التحقق ===== */
 .loading-notice {
   display:none;
-  background: linear-gradient(135deg, rgba(20,184,166,.15), rgba(201,169,97,.1));
-  border: 1.5px solid rgba(20,184,166,.4);
+  background: rgba(16,185,129,.08);
+  border: 1.5px solid rgba(16,185,129,.3);
   border-radius:16px;
-  padding:20px 24px;
+  padding:24px;
   margin-top:20px;
   text-align:center;
   animation: fadeIn .4s ease;
@@ -305,18 +257,18 @@ textarea::placeholder { color:#64748b; }
   width:50px;
   height:50px;
   margin: 0 auto 15px;
-  border:4px solid rgba(20,184,166,.2);
-  border-top-color:#14B8A6;
+  border:4px solid rgba(16,185,129,.2);
+  border-top-color:#10b981;
   border-radius:50%;
-  animation: spin 1s linear infinite;
+  animation: spinLarge 1s linear infinite;
 }
 
-@keyframes spin {
+@keyframes spinLarge {
   to { transform: rotate(360deg); }
 }
 
 .loading-notice h3 {
-  color:#14B8A6;
+  color:#6ee7b7;
   font-size:18px;
   font-weight:700;
   margin-bottom:8px;
@@ -330,8 +282,8 @@ textarea::placeholder { color:#64748b; }
 
 /* ===== النتائج ===== */
 .result {
-  background: rgba(20,184,166,.08);
-  border: 1.5px solid rgba(20,184,166,.3);
+  background: rgba(16,185,129,.08);
+  border: 1.5px solid rgba(16,185,129,.2);
   border-radius:16px;
   padding:28px;
   margin-top:20px;
@@ -366,7 +318,7 @@ textarea::placeholder { color:#64748b; }
 
 .source {
   background: rgba(255,255,255,.04);
-  border:1px solid rgba(20,184,166,.15);
+  border:1px solid rgba(255,255,255,.08);
   border-right: 4px solid #C9A961;
   border-radius:12px;
   padding:18px;
@@ -385,11 +337,10 @@ textarea::placeholder { color:#64748b; }
   font-size:11px;
 }
 .meta span {
-  background:rgba(20,184,166,.1);
+  background:rgba(255,255,255,.06);
   padding:4px 10px;
   border-radius:8px;
   color:#94a3b8;
-  border:1px solid rgba(20,184,166,.2);
 }
 
 .error {
@@ -402,9 +353,6 @@ textarea::placeholder { color:#64748b; }
   text-align:center;
   font-size:15px;
 }
-
-/* ===== إخفاء العناصر ===== */
-.hidden { display:none !important; }
 </style>
 </head>
 <body>
@@ -415,14 +363,7 @@ textarea::placeholder { color:#64748b; }
   <!-- ===== الشعار والعنوان ===== -->
   <div class="logo-section">
     <div class="logo-card">
-      <img src="/static/shshsh.png" alt="MAVIC Logo" style="width: 200px; height: auto; margin-bottom: 15px;">
-      <h1>MAVIC</h1>
-      <div class="divider">
-        <span class="line"></span>
-        <span class="star">✦</span>
-        <span class="line"></span>
-      </div>
-      <p>منصة تحقق ذكية متعددة الوكلاء للمحتوى الإسلامي</p>
+      <img src="/static/logo.png" alt="MAVIC Logo">
     </div>
 
     <div class="path-badge">المسار الرابع: أدوات المعرفة والتحقق</div>
@@ -502,11 +443,11 @@ textarea::placeholder { color:#64748b; }
       alert("⚠️ يرجى كتابة نص للتحقق منه");
       return;
     }
-    
+
     const btn = document.getElementById("verifyBtn");
     const out = document.getElementById("output");
     const loading = document.getElementById("loadingNotice");
-    
+
     btn.disabled = true;
     btn.textContent = "⏳ جارٍ التحقق...";
     btn.classList.add("loading");
@@ -533,7 +474,7 @@ textarea::placeholder { color:#64748b; }
       html += '<div class="answer">' + formatAnswer(d.answer) + '</div>';
 
       if (d.sources && d.sources.length) {
-        html += '<h3 style="margin-top:24px;font-size:15px;color:#14B8A6;font-weight:700;">📚 المصادر المسترجعة</h3>';
+        html += '<h3 style="margin-top:24px;font-size:15px;color:#6ee7b7;font-weight:700;">📚 المصادر المسترجعة</h3>';
         for (let i = 0; i < d.sources.length; i++) {
           const s = d.sources[i];
           html += '<div class="source">';
@@ -560,14 +501,13 @@ textarea::placeholder { color:#64748b; }
 
   document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("verifyBtn").addEventListener("click", verify);
-    
-    // دعم Ctrl+Enter للتشغيل السريع
+
     document.getElementById("q").addEventListener("keydown", function(e) {
       if (e.ctrlKey && e.key === "Enter") {
         verify();
       }
     });
-    
+
     loadStats();
   });
 })();
